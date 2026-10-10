@@ -1,0 +1,690 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Recap English → Myanmar</title>
+  <link rel="stylesheet" href="/static/css/app.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Padauk:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div id="app" class="app-container">
+    <!-- Top Bar -->
+    <header class="top-nav">
+      <div class="brand">
+        <div class="logo-badge">MM</div>
+        <div class="brand-text">
+          <h1>Recap Production</h1>
+          <span class="sub">English → Myanmar · Smart Sync</span>
+        </div>
+      </div>
+
+      <nav class="tabs-nav">
+        <button class="nav-btn active" data-tab="workspace">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+          <span>Workspace</span>
+        </button>
+        <button class="nav-btn" data-tab="sources">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+          <span>Sources</span>
+          <span class="badge" id="sourceCountBadge">0</span>
+        </button>
+        <button class="nav-btn" data-tab="jobs">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+          <span>Generated Jobs</span>
+          <span class="badge" id="jobCountBadge">0</span>
+        </button>
+        <button class="nav-btn" data-tab="settings">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          <span>Settings</span>
+        </button>
+      </nav>
+    </header>
+
+    <!-- Main View Containers -->
+    <main class="main-content">
+      
+      <!-- ================= 1. WORKSPACE TAB ================= -->
+      <section id="tab-workspace" class="tab-pane active">
+        <div class="workspace-layout">
+          
+          <!-- Left Column: Source Selection & Settings -->
+          <div class="pane left-pane">
+            
+            <!-- Source Input Card -->
+            <div class="card">
+              <div class="card-header">
+                <h3>Source Video</h3>
+              </div>
+              <div class="card-body">
+                
+                <!-- URL Download Form -->
+                <div class="input-group mb-3">
+                  <label>Download Link (YouTube, TikTok, FB, etc.)</label>
+                  <div class="row-flex">
+                    <input type="text" id="downloadUrlInput" placeholder="Paste video link here..." autocomplete="off">
+                    <button id="downloadBtn" class="btn btn-primary">
+                      <span>Download</span>
+                    </button>
+                  </div>
+                  <div id="downloadProgress" class="progress-box hidden">
+                    <div class="progress-bar-bg"><div id="downloadProgressBar" class="progress-bar-fill"></div></div>
+                    <span id="downloadStatusText" class="muted small">Downloading...</span>
+                  </div>
+                </div>
+
+                <!-- Or Upload File -->
+                <div class="input-group mb-3">
+                  <label>Or Upload Video File</label>
+                  <div class="drop-zone" id="videoDropZone">
+                    <input type="file" id="videoFileInput" accept="video/mp4,video/x-matroska,video/quicktime,video/webm">
+                    <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                    <p class="drop-text">Drag video here or <u>browse</u></p>
+                    <span class="muted small">MP4, MKV, MOV, WebM</span>
+                  </div>
+                </div>
+
+                <!-- Selected Video Banner -->
+                <div id="selectedSourceBanner" class="selected-banner hidden">
+                  <div class="thumb-wrap">
+                    <img id="selectedThumb" src="" alt="Thumbnail">
+                  </div>
+                  <div class="info-wrap">
+                    <strong id="selectedTitle">No video selected</strong>
+                    <div class="meta muted small">
+                      <span id="selectedDuration">00:00</span> · <span id="selectedRes">1920x1080</span>
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+
+            <!-- Voice & Translation Settings -->
+            <div class="card">
+              <div class="card-header">
+                <h3>Translation & Voice</h3>
+              </div>
+              <div class="card-body">
+                <div class="form-row">
+                  <label>Edge TTS Voice</label>
+                  <select id="edgeVoiceSelect">
+                    <option value="my-MM-ThihaNeural">Thiha (Male - Natural)</option>
+                    <option value="my-MM-NilarNeural">Nilar (Female - Natural)</option>
+                  </select>
+                </div>
+
+                <div class="form-row">
+                  <div class="label-with-val">
+                    <label>Voice Speed</label>
+                    <span id="voiceSpeedVal">+0%</span>
+                  </div>
+                  <input type="range" id="voiceSpeedSlider" min="-50" max="100" value="0" step="5">
+                  <div class="range-labels"><span>-50% slower</span><span>Normal</span><span>+100% faster</span></div>
+                </div>
+
+                <div class="form-row">
+                  <div class="label-with-val">
+                    <label>Voice Volume</label>
+                    <span id="voiceVolVal">100%</span>
+                  </div>
+                  <input type="range" id="voiceVolSlider" min="50" max="300" value="100" step="10">
+                </div>
+
+                <div class="form-row checkbox-row">
+                  <label class="switch-label">
+                    <input type="checkbox" id="shortPausesCheck" checked>
+                    <span>Short pauses (~0.25s silence between lines)</span>
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <!-- Original Background Sound Card -->
+            <div class="card">
+              <div class="card-header space-between">
+                <h3>Original Background Sound</h3>
+                <label class="switch-label small">
+                  <input type="checkbox" id="enableOrigBgCheck">
+                  <span>Enable</span>
+                </label>
+              </div>
+              <div class="card-body">
+                <p class="muted small mb-2">Isolates background music & SFX with AI, removing English human voices.</p>
+                <div class="form-row" id="origBgVolRow">
+                  <div class="label-with-val">
+                    <label>Background Sound Volume</label>
+                    <span id="origBgVolVal">25%</span>
+                  </div>
+                  <input type="range" id="origBgVolSlider" min="5" max="100" value="25" step="5">
+                  <span class="muted small mt-1" style="display:block;">BGM & sound effects duck smoothly under narration</span>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Middle Column: Preview Frame & Touch Positioning -->
+          <div class="pane center-pane">
+            <div class="card preview-card">
+              <div class="card-header space-between">
+                <h3>Visual Preview</h3>
+                <div class="header-tools">
+                  <span id="previewTimeLabel" class="muted small font-mono">00:00 / 00:00</span>
+                  <button id="refreshFrameBtn" class="btn btn-sm btn-secondary">Refresh Frame</button>
+                </div>
+              </div>
+
+              <div class="card-body preview-body">
+                
+                <!-- Preview Canvas Stage -->
+                <div class="preview-stage-container" id="previewContainer">
+                  <img id="previewImage" src="" alt="Frame preview">
+                  <div id="overlayCanvas" class="overlay-layer">
+                    <!-- Title Element -->
+                    <div id="overlayTitle" class="overlay-elem title-elem hidden">
+                      <span id="overlayTitleText">Title Preview</span>
+                    </div>
+                    <!-- Extra Text Element -->
+                    <div id="overlayExtra" class="overlay-elem extra-elem hidden">
+                      <span id="overlayExtraText">Extra Text</span>
+                    </div>
+                    <!-- Logo Element -->
+                    <div id="overlayLogo" class="overlay-elem logo-elem hidden">
+                      <img id="overlayLogoImg" src="" alt="Logo">
+                    </div>
+                    <!-- Subtitle Element (Rendered strictly above blur boxes) -->
+                    <div id="overlaySubtitle" class="overlay-elem subtitle-elem hidden">
+                      <span id="overlaySubtitleText">ဒါကတော့ မြန်မာစာတန်းထိုး နမူနာ ဖြစ်ပါတယ်</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Seek Slider -->
+                <div class="seek-bar-row">
+                  <button id="seekBackBtn" class="btn btn-sm btn-icon">◀ 5s</button>
+                  <input type="range" id="previewSeekSlider" min="0" max="100" value="0" step="0.5">
+                  <button id="seekFwdBtn" class="btn btn-sm btn-icon">5s ▶</button>
+                </div>
+
+                <!-- Touch & Mobile Positioning Control Hub -->
+                <div class="mobile-positioning-panel" id="mobilePositioning">
+                  <div class="pos-panel-header">
+                    <h4>Position & Alignment Controls</h4>
+                    <span class="muted small">Touch-Friendly Preset Grid & Sliders</span>
+                  </div>
+
+                  <!-- Select active overlay to adjust -->
+                  <div class="pos-target-selector">
+                    <label>Select Target:</label>
+                    <div class="segmented-control">
+                      <button class="seg-btn active" data-target="title">Title</button>
+                      <button class="seg-btn" data-target="subtitle">Subtitle</button>
+                      <button class="seg-btn" data-target="logo">Logo</button>
+                      <button class="seg-btn" data-target="extra">Extra Text</button>
+                      <button class="seg-btn" data-target="blur">Blur Watermark</button>
+                    </div>
+                  </div>
+
+                  <!-- 9-Grid Alignment Presets -->
+                  <div class="preset-grid-wrapper">
+                    <label class="small muted">Quick 1-Tap Alignment:</label>
+                    <div class="preset-grid">
+                      <button class="grid-btn" data-align="top-left">Top-L</button>
+                      <button class="grid-btn" data-align="top-center">Top-C</button>
+                      <button class="grid-btn" data-align="top-right">Top-R</button>
+                      <button class="grid-btn" data-align="center-left">Mid-L</button>
+                      <button class="grid-btn" data-align="center">Center</button>
+                      <button class="grid-btn" data-align="center-right">Mid-R</button>
+                      <button class="grid-btn" data-align="bottom-left">Bot-L</button>
+                      <button class="grid-btn" data-align="bottom-center">Bot-C</button>
+                      <button class="grid-btn" data-align="bottom-right">Bot-R</button>
+                    </div>
+                  </div>
+
+                  <!-- Tap-to-Place toggle -->
+                  <div class="tap-place-row">
+                    <label class="switch-label">
+                      <input type="checkbox" id="tapToPlaceCheck">
+                      <span>Enable Tap-to-Place on Preview Image</span>
+                    </label>
+                  </div>
+
+                  <!-- Numeric Fine-Tuning Sliders -->
+                  <div class="fine-tuning-sliders">
+                    <div class="slider-stepper">
+                      <label>X Position (<span id="posXVal">50%</span>)</label>
+                      <div class="stepper-row">
+                        <button class="step-btn" data-adjust="posX" data-delta="-2">-</button>
+                        <input type="range" id="posXSlider" min="0" max="100" value="50">
+                        <button class="step-btn" data-adjust="posX" data-delta="2">+</button>
+                      </div>
+                    </div>
+
+                    <div class="slider-stepper">
+                      <label>Y Position (<span id="posYVal">12%</span>)</label>
+                      <div class="stepper-row">
+                        <button class="step-btn" data-adjust="posY" data-delta="-2">-</button>
+                        <input type="range" id="posYSlider" min="0" max="100" value="12">
+                        <button class="step-btn" data-adjust="posY" data-delta="2">+</button>
+                      </div>
+                    </div>
+
+                    <div class="slider-stepper" id="sizeStepper">
+                      <label>Size / Scale (<span id="posSizeVal">54px</span>)</label>
+                      <div class="stepper-row">
+                        <button class="step-btn" data-adjust="size" data-delta="-2">-</button>
+                        <input type="range" id="posSizeSlider" min="16" max="96" value="54">
+                        <button class="step-btn" data-adjust="size" data-delta="2">+</button>
+                      </div>
+                    </div>
+                  </div>
+
+                </div>
+
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Right Column: Production Tools (Crop, Ratio, Overlays) -->
+          <div class="pane right-pane">
+            <div class="card">
+              <div class="card-header">
+                <h3>Video Framing</h3>
+              </div>
+              <div class="card-body">
+                <div class="form-row">
+                  <label>Aspect Ratio</label>
+                  <select id="ratioSelect">
+                    <option value="16:9" selected>16:9 (Landscape - 1920x1080)</option>
+                    <option value="9:16">9:16 (TikTok / Reels - 1080x1920)</option>
+                    <option value="1:1">1:1 (Square - 1080x1080)</option>
+                    <option value="Original">Original (Source aspect)</option>
+                  </select>
+                </div>
+
+                <div class="form-row">
+                  <label>Fill Mode</label>
+                  <select id="fillSelect">
+                    <option value="blur" selected>Blur background</option>
+                    <option value="black">Black bars (Letterbox)</option>
+                    <option value="crop">Crop to fill</option>
+                  </select>
+                </div>
+
+                <div class="form-row">
+                  <div class="label-with-val">
+                    <label>Zoom</label>
+                    <span id="zoomVal">1.05x</span>
+                  </div>
+                  <input type="range" id="zoomSlider" min="1.00" max="1.25" value="1.05" step="0.01">
+                </div>
+
+                <div class="form-row checkbox-row">
+                  <label class="switch-label">
+                    <input type="checkbox" id="flipCheck">
+                    <span>Flip (Mirror left ↔ right)</span>
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <!-- Overlays Card -->
+            <div class="card">
+              <div class="card-header">
+                <h3>Overlays & Watermarks</h3>
+              </div>
+              <div class="card-body">
+                
+                <!-- Title Text -->
+                <div class="overlay-section">
+                  <h4>Title</h4>
+                  <input type="text" id="titleTextInput" class="mm-text" placeholder="မြန်မာ ခေါင်းစဉ် ရေးရန်...">
+                </div>
+
+                <!-- Extra Text -->
+                <div class="overlay-section">
+                  <h4>Extra Text / Sub-Label</h4>
+                  <input type="text" id="extraTextInput" class="mm-text" placeholder="စာတို ရေးရန်...">
+                </div>
+
+                <!-- Logo Image -->
+                <div class="overlay-section">
+                  <div class="space-between mb-2">
+                    <h4>Logo Watermark</h4>
+                    <label class="switch-label small">
+                      <input type="checkbox" id="logoEnabledCheck">
+                      <span>Enable</span>
+                    </label>
+                  </div>
+                  <div class="row-flex mb-2">
+                    <input type="file" id="logoFileInput" accept="image/png,image/jpeg,image/webp">
+                  </div>
+                  <div class="form-row">
+                    <div class="label-with-val">
+                      <label>Logo Size</label>
+                      <span id="logoSizeVal">16%</span>
+                    </div>
+                    <input type="range" id="logoSizeSlider" min="6" max="35" value="16" step="1">
+                  </div>
+                </div>
+
+                <!-- Blur Watermark Boxes -->
+                <div class="overlay-section">
+                  <div class="space-between mb-2">
+                    <h4>Blur Box (Hide Watermarks)</h4>
+                    <button id="addBlurBtn" class="btn btn-sm btn-secondary">+ Add Box</button>
+                  </div>
+                  <div id="blurBoxesList" class="blur-boxes-list">
+                    <span class="muted small">No blur boxes added</span>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+
+            <!-- Burmese Subtitles Card -->
+            <div class="card">
+              <div class="card-header space-between">
+                <h3>Burmese Subtitles</h3>
+                <label class="switch-label small">
+                  <input type="checkbox" id="burnSubtitlesCheck" checked>
+                  <span>Burn on Video</span>
+                </label>
+              </div>
+              <div class="card-body">
+                <p class="muted small mb-2">Rendered above blur boxes · Scaled to video resolution · Center-aligned.</p>
+                
+                <!-- Resolution-Proportional Font Size with Steppers -->
+                <div class="form-row">
+                  <div class="label-with-val">
+                    <label>Font Size (% of Video Height)</label>
+                    <span id="subSizeVal" class="badge-value">3.6%</span>
+                  </div>
+                  <div class="stepper-row">
+                    <button type="button" class="btn-stepper" id="subSizeMinusBtn" title="Decrease font size">-</button>
+                    <input type="range" id="subSizeSlider" min="2.0" max="6.5" value="3.6" step="0.2">
+                    <button type="button" class="btn-stepper" id="subSizePlusBtn" title="Increase font size">+</button>
+                  </div>
+                  <!-- Quick 1-Tap Size Presets -->
+                  <div class="size-preset-pills mt-2">
+                    <button type="button" class="preset-pill-btn" data-subsize="2.8">Small (2.8%)</button>
+                    <button type="button" class="preset-pill-btn active" data-subsize="3.6">Medium (3.6%)</button>
+                    <button type="button" class="preset-pill-btn" data-subsize="4.4">Large (4.4%)</button>
+                    <button type="button" class="preset-pill-btn" data-subsize="5.2">X-Large (5.2%)</button>
+                  </div>
+                </div>
+
+                <!-- Subtitle Box Width with Steppers -->
+                <div class="form-row">
+                  <div class="label-with-val">
+                    <label>Box Max Width</label>
+                    <span id="subWidthVal" class="badge-value">85%</span>
+                  </div>
+                  <div class="stepper-row">
+                    <button type="button" class="btn-stepper" id="subWidthMinusBtn" title="Narrow box">-</button>
+                    <input type="range" id="subWidthSlider" min="50" max="95" value="85" step="5">
+                    <button type="button" class="btn-stepper" id="subWidthPlusBtn" title="Widen box">+</button>
+                  </div>
+                  <div class="size-preset-pills mt-2">
+                    <button type="button" class="preset-pill-btn" data-subwidth="70">Narrow (70%)</button>
+                    <button type="button" class="preset-pill-btn active" data-subwidth="85">Standard (85%)</button>
+                    <button type="button" class="preset-pill-btn" data-subwidth="95">Wide (95%)</button>
+                  </div>
+                </div>
+
+                <!-- Touch-friendly Position Adjustment -->
+                <div class="form-row">
+                  <div class="label-with-val">
+                    <label>Vertical Position (Y)</label>
+                    <span id="subYVal" class="badge-value">86%</span>
+                  </div>
+                  <div class="stepper-row">
+                    <button type="button" class="btn-stepper" id="subYMinusBtn" title="Move Up">-</button>
+                    <input type="range" id="subYSlider" min="10" max="95" value="86" step="2">
+                    <button type="button" class="btn-stepper" id="subYPlusBtn" title="Move Down">+</button>
+                  </div>
+                  <!-- Quick 1-Tap Position Presets -->
+                  <div class="size-preset-pills mt-2">
+                    <button type="button" class="pos-preset-btn" data-suby="12">Top (12%)</button>
+                    <button type="button" class="pos-preset-btn" data-suby="50">Middle (50%)</button>
+                    <button type="button" class="pos-preset-btn active" data-suby="86">Bottom (86%)</button>
+                    <button type="button" class="pos-preset-btn" id="subCenterHBtn">Center X</button>
+                  </div>
+                </div>
+
+                <!-- Subtitle Color -->
+                <div class="form-row">
+                  <label>Subtitle Color</label>
+                  <div class="row-flex gap-2" style="display:flex; align-items:center; gap:8px;">
+                    <button type="button" class="btn btn-sm sub-color-btn active" data-color="#FFDE00" style="background:#FFDE00; color:#000; font-weight:700; padding:3px 10px; border-radius:4px;">Yellow</button>
+                    <button type="button" class="btn btn-sm sub-color-btn" data-color="#FFFFFF" style="background:#FFFFFF; color:#000; font-weight:700; padding:3px 10px; border-radius:4px;">White</button>
+                    <button type="button" class="btn btn-sm sub-color-btn" data-color="#38BDF8" style="background:#38BDF8; color:#000; font-weight:700; padding:3px 10px; border-radius:4px;">Cyan</button>
+                    <input type="color" id="subColorPicker" value="#FFDE00" style="width:34px; height:28px; padding:0; border:none; border-radius:4px; cursor:pointer;">
+                  </div>
+                </div>
+
+                <!-- Subtitle Style -->
+                <div class="form-row">
+                  <label>Subtitle Style</label>
+                  <select id="subStyleSelect">
+                    <option value="outline" selected>Outline + Drop Shadow</option>
+                    <option value="box">Semi-Transparent Bounding Box</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Full-Width Bottom Execution Bar & Live Process Dock -->
+          <div class="workspace-footer">
+            <div class="card run-card">
+              <div class="run-bar">
+                
+                <!-- Left: Action Buttons (Equal size, strictly aligned) -->
+                <div class="run-actions">
+                  <button id="startJobBtn" class="btn btn-action btn-success">
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                    <span>START / RESUME</span>
+                  </button>
+                  <button id="stopJobBtn" class="btn btn-action btn-danger" disabled>
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><rect x="6" y="6" width="12" height="12"/></svg>
+                    <span>STOP SAFELY</span>
+                  </button>
+                </div>
+
+                <!-- Center: Live Status & Progress -->
+                <div class="run-status-col">
+                  <div class="run-status-header">
+                    <div class="status-badge" id="jobStatusBadge">READY</div>
+                    <span id="jobStageText" class="stage-text">Select video and configure settings to start</span>
+                    <span id="jobProgressPercent" class="progress-pct font-mono">0%</span>
+                  </div>
+                  <div class="progress-bar-bg">
+                    <div id="jobProgressBar" class="progress-bar-fill" style="width: 0%;"></div>
+                  </div>
+                  <div class="progress-meta">
+                    <span id="jobProgressLabel" class="small muted">0 / 0</span>
+                    <button type="button" id="quickWatchBtn" class="btn btn-xs btn-primary hidden">Watch Video</button>
+                  </div>
+                </div>
+
+                <!-- Right: Process Logs Trigger -->
+                <div class="run-tools">
+                  <button type="button" class="btn btn-secondary btn-drawer-toggle" id="drawerToggleBtn">
+                    <span class="live-dot" id="liveDot"></span>
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg>
+                    <span id="drawerToggleLabel">Live Logs</span>
+                    <span class="badge" id="logLinesCount">0 lines</span>
+                    <svg id="drawerArrow" class="drawer-arrow" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+                  </button>
+                </div>
+
+              </div>
+
+              <!-- Collapsible Live Process Output Drawer -->
+              <div class="logs-drawer hidden" id="logsDrawer">
+                <div class="logs-drawer-header">
+                  <div class="logs-header-left">
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg>
+                    <strong>Live Process Output Console</strong>
+                  </div>
+                  <div class="logs-header-right">
+                    <button type="button" class="btn btn-sm btn-secondary" id="copyLogsBtn">
+                      <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                      <span>Copy Logs</span>
+                    </button>
+                    <button type="button" class="btn btn-sm btn-secondary" id="clearLogsBtn">Clear</button>
+                  </div>
+                </div>
+                <div class="log-console font-mono" id="liveLogConsole">[System ready. Waiting for task...]</div>
+              </div>
+
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+
+      <!-- ================= 2. SOURCES HISTORY TAB ================= -->
+      <section id="tab-sources" class="tab-pane">
+        <div class="history-container">
+          <div class="history-header">
+            <div>
+              <h2>Source Media Library</h2>
+              <p class="muted">All uploaded and downloaded video files</p>
+            </div>
+            <button id="refreshSourcesBtn" class="btn btn-secondary">Refresh</button>
+          </div>
+
+          <div class="sources-grid" id="sourcesGrid">
+            <!-- Rendered dynamically -->
+          </div>
+        </div>
+      </section>
+
+
+      <!-- ================= 3. GENERATED JOBS HISTORY TAB ================= -->
+      <section id="tab-jobs" class="tab-pane">
+        <div class="history-container">
+          <div class="history-header">
+            <div>
+              <h2>Generated Recap Jobs</h2>
+              <p class="muted">Processed Smart Sync videos, transcripts, and checkpoints</p>
+            </div>
+            <button id="refreshJobsBtn" class="btn btn-secondary">Refresh</button>
+          </div>
+
+          <div class="jobs-list" id="jobsList">
+            <!-- Rendered dynamically -->
+          </div>
+        </div>
+      </section>
+
+
+      <!-- ================= 4. SETTINGS TAB ================= -->
+      <section id="tab-settings" class="tab-pane">
+        <div class="settings-container">
+          <div class="settings-card">
+            <h2>Gemini API Configuration</h2>
+            <p class="muted">Manage primary API key, fallback keys pool, and optional proxy</p>
+
+            <form id="settingsForm">
+              <div class="form-group mb-4">
+                <label>Primary Gemini API Key</label>
+                <div class="row-flex">
+                  <input type="password" id="geminiApiKeyInput" placeholder="AIzaSy..." autocomplete="off">
+                  <button type="button" id="toggleKeyVisBtn" class="btn btn-secondary">Show</button>
+                  <button type="button" id="testKeyBtn" class="btn btn-primary">Test Key</button>
+                </div>
+                <div id="keyTestResult" class="test-result-box hidden"></div>
+                <span class="muted small">Key is stored in server .env. Get a key from Google AI Studio.</span>
+              </div>
+
+              <!-- Additional Fallback Keys -->
+              <div class="form-group mb-4">
+                <div class="space-between mb-2">
+                  <label>Fallback Project Keys (Rotates on 429 quota)</label>
+                  <button type="button" id="addFallbackKeyBtn" class="btn btn-sm btn-secondary">+ Add Key</button>
+                </div>
+                <div id="fallbackKeysContainer" class="fallback-keys-list">
+                  <!-- Rendered dynamically -->
+                </div>
+              </div>
+
+              <div class="form-group mb-4">
+                <label>Gemini Proxy (Optional)</label>
+                <input type="text" id="geminiProxyInput" placeholder="e.g. http://127.0.0.1:10808 (or empty)">
+                <span class="muted small">Useful if Google API requires a local proxy or VPN tunnel.</span>
+              </div>
+
+              <div class="form-group mb-4">
+                <label>Translation Text Model</label>
+                <select id="geminiModelSelect">
+                  <option value="gemini-3.5-flash">gemini-3.5-flash (Fast & Accurate)</option>
+                  <option value="gemini-3.5-flash-lite">gemini-3.5-flash-lite (Very Fast)</option>
+                  <option value="gemini-3.6-flash">gemini-3.6-flash</option>
+                  <option value="gemini-3.7-flash">gemini-3.7-flash</option>
+                  <option value="gemini-2.5-flash">gemini-2.5-flash</option>
+                </select>
+              </div>
+
+              <button type="submit" class="btn btn-success btn-lg">Save Settings</button>
+            </form>
+          </div>
+
+          <div class="settings-card mt-4">
+            <h2>System & Hardware Status</h2>
+            <div id="sysDiagnostic" class="sys-diagnostic-box">
+              <div class="diag-row"><span>Operating System</span><span class="font-mono">Ubuntu Linux</span></div>
+              <div class="diag-row"><span>Audio/Video Engine</span><span class="font-mono">FFmpeg (Local)</span></div>
+              <div class="diag-row"><span>Speech Recognition</span><span class="font-mono">Faster-Whisper (small.en)</span></div>
+              <div class="diag-row"><span>Speech Synthesis</span><span class="font-mono">Microsoft Edge TTS (my-MM)</span></div>
+              <div class="diag-row"><span>Font Support</span><span class="font-mono">Noto Sans Myanmar & Padauk</span></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- Video Modal -->
+  <div id="videoModal" class="modal hidden">
+    <div class="modal-backdrop"></div>
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3 id="modalVideoTitle">Watch Video</h3>
+        <button class="modal-close" id="modalCloseBtn">&times;</button>
+      </div>
+      <div class="modal-body">
+        <video id="modalVideoPlayer" controls playsinline width="100%"></video>
+      </div>
+      <div class="modal-footer" id="modalVideoFooter" style="display:flex; justify-content:flex-end; gap:8px; padding:12px 16px; border-top:1px solid #303744;">
+        <a id="modalDownloadSrt" href="#" class="btn btn-sm btn-secondary" target="_blank" download>Download Subtitles (.SRT)</a>
+        <a id="modalDownloadAss" href="#" class="btn btn-sm btn-secondary" target="_blank" download>Download Subtitles (.ASS)</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Plan & Translations Modal -->
+  <div id="planModal" class="modal hidden">
+    <div class="modal-backdrop"></div>
+    <div class="modal-dialog modal-large">
+      <div class="modal-header">
+        <h3>Smart Sync Plan & Translation Segments</h3>
+        <button class="modal-close" id="planModalCloseBtn">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div id="planSegmentsList" class="plan-segments-list"></div>
+      </div>
+    </div>
+  </div>
+
+  <script src="/static/js/app.js"></script>
+</body>
+</html>

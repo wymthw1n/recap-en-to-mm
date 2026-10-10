@@ -23,7 +23,9 @@ Narrator only · Whisper + Gemini · Microsoft Edge TTS (Myanmar) · Smart Sync
 6. **Smart Sync** — မြန်မာအသံက အချိန်ကို ဦးဆောင်ပြီး ရုပ်က လိုက်ညှိတယ်။ အသေးစိတ်ကို [Smart Sync ဘယ်လိုအလုပ်လုပ်လဲ](#smart-sync-ဘယ်လိုအလုပ်လုပ်လဲ) မှာ ကြည့်ပါ။
 7. **ဖြည့်စွက်** — Blur box (မူရင်း watermark/စာတန်းဖုံးဖို့)၊ Title၊ Logo၊ Extra text၊ Zoom၊ Flip တွေကို preview ပေါ်မှာ နေရာချပြီး ထည့်လို့ရတယ်။ Video အချိုး (**16:9 / 9:16 / 1:1 / Original**) ကိုလည်း ရွေးလို့ရတယ်။
 
-ထွက်လာတဲ့ video မှာ **မြန်မာအသံပဲ** ပါတယ်။ မူရင်း English အသံနဲ့ နောက်ခံသီချင်း မပါဘူး။
+8. **မြန်မာစာတန်းထိုး (Burmese Subtitles)** — Smart Sync timing နှင့် ကိုက်ညီသော `.srt` / `.ass` စာတန်းထိုးများ (Resolution-scaled font size၊ Center-aligned) ကို Blur box အပေါ်ကနေ ထည့်သွင်းနိုင်ခြင်း။
+9. **မူရင်းနောက်ခံအသံ ခွဲထုတ်ခြင်း (Vocal Separation)** — Demucs ONNX AI ဖြင့် English စကားပြောသံကို ဖယ်ရှားပြီး မူရင်း နောက်ခံတေးဂီတ (BGM/SFX) ကို မြန်မာအသံအောက်တွင် ထည့်သွင်းနိုင်ခြင်း။
+10. **Interactive One-Click Deployer (`./deploy.sh`)** — Linux VPS / Cloud ပေါ်တွင် systemd + Caddy HTTPS ဖြင့် All-Ready Stage သို့ ချက်ချင်း deploy လုပ်နိုင်ခြင်း။
 
 ## လိုအပ်တာ
 
@@ -56,7 +58,28 @@ Narrator only · Whisper + Gemini · Microsoft Edge TTS (Myanmar) · Smart Sync
 
 > ⚠️ `.env` ထဲမှာ ကိုယ့် key ရှိလို့ ဘယ်သူ့ကိုမှ မပို့ပါနဲ့၊ GitHub ပေါ်လည်း မတင်ပါနဲ့ (`.gitignore` ထဲမှာ ထည့်ထားပြီးသားပါ)။
 
-## သုံးနည်း
+## Linux / VPS / Cloud One-Click Deployment (Interactive)
+
+Linux Server (Ubuntu / Debian / VPS) ပေါ်တွင် အောက်ပါ command ဖြင့် All-Ready Stage အထိ တစ်ချက်တည်း install လုပ်နိုင်ပါသည်:
+
+```bash
+git clone https://github.com/wymthw1n/rc.git
+cd rc
+chmod +x deploy.sh
+sudo ./deploy.sh
+```
+
+**Features of `./deploy.sh`:**
+- **Interactive Prompts**: Local port, Caddy public domain (`rc.<ip>.sslip.io`), Gemini API key, HF token များကို interactive wizard ဖြင့် သတ်မှတ်နိုင်ခြင်း။
+- **All-Ready AI Model Pre-warming**: Whisper `small.en` နှင့် Demucs ONNX vocal remover (`htdemucs_ft_vocals`) များကို pre-cache လုပ်ပေးသဖြင့် ပထမဆုံး video စတင်ချိန်တွင် စောင့်ဆိုင်းစရာ မလိုခြင်း။
+- **Systemd & Caddy HTTPS**: Reverse proxy နှင့် background auto-restart service ကို အလိုအလျောက် configure ပြုလုပ်ပေးခြင်း။
+- **CLI Commands**:
+  - `./deploy.sh -y` — Non-interactive / unattended automated deployment.
+  - `./deploy.sh -s` — Service status နှင့် health check ကြည့်ရှုရန်။
+  - `./deploy.sh -l` — Live journalctl log ကြည့်ရန်။
+  - `./deploy.sh -r` — Service restart ပြုလုပ်ရန်။
+
+## သုံးနည်း (Windows Desktop GUI)
 
 **`RUN.bat`** ကို double-click နှိပ်ပါ။ Window မှာ အကွက် ၃ ကွက် ပါပါတယ်။
 

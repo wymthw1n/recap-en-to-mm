@@ -41,8 +41,10 @@ def extract_preview_frame(
     fill: str = "blur",
     source_size: tuple[int, int] = (0, 0),
 ) -> str:
-    """One frame drawn exactly like the render (same flip/zoom/ratio/fill filters), at preview size."""
-    from core import _visual_filters, frame_layout
+    try:
+        from core import _visual_filters, frame_layout
+    except ImportError:
+        from app.core import _visual_filters, frame_layout
 
     layout = frame_layout(ratio, fill, source_size[0], source_size[1], canvas=(width, height))
     vf, _zoom = _visual_filters(mirror, zoom, layout)

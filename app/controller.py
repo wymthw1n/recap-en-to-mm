@@ -182,6 +182,13 @@ class App(tk.Tk):
         self.title_pos = list(self.cfg.get("title_position", [0.50, 0.12]))
         self.logo_pos = list(self.cfg.get("logo_position", [0.80, 0.06]))
         self.extra_text_pos = list(self.cfg.get("extra_text_position", [0.50, 0.84]))
+        self.enable_orig_bg = tk.BooleanVar(value=bool(self.cfg.get("enable_original_background", False)))
+        self.orig_bg_volume = tk.IntVar(value=int(self.cfg.get("original_background_volume", 25)))
+        self.burn_subtitles = tk.BooleanVar(value=bool(self.cfg.get("burn_subtitles", True)))
+        self.subtitle_size = tk.IntVar(value=int(self.cfg.get("subtitle_font_size", 34)))
+        self.subtitle_color = tk.StringVar(value=str(self.cfg.get("subtitle_font_color", "#FFDE00")))
+        self.subtitle_style = tk.StringVar(value=str(self.cfg.get("subtitle_style", "outline")))
+        self.subtitle_pos = list(self.cfg.get("subtitle_position", [0.50, 0.86]))
         self._preview_photo = None
         self._logo_photo = None
         self._draw_blur_mode = False
@@ -414,6 +421,20 @@ class App(tk.Tk):
         for combo in (ratio_combo, fill_combo):
             combo.bind("<<ComboboxSelected>>", lambda _e: self._frame_changed())
 
+        bg_sound_frame = ttk.Frame(self.zoom_slider.master)
+        bg_sound_frame.grid(row=5, column=0, columnspan=3, sticky="ew", pady=(8, 0))
+        bg_sound_frame.columnconfigure(1, weight=1)
+        ttk.Checkbutton(bg_sound_frame, text="Original Bg Sound (No Vocals)", variable=self.enable_orig_bg).grid(row=0, column=0, columnspan=3, sticky="w")
+        bg_vol_frame = ttk.Frame(bg_sound_frame)
+        bg_vol_frame.grid(row=1, column=0, columnspan=3, sticky="ew", pady=(4, 0))
+        bg_vol_frame.columnconfigure(1, weight=1)
+        ttk.Label(bg_vol_frame, text="Bg sound vol", width=11).grid(row=0, column=0, sticky="w")
+        self._bg_volume_scale_var = tk.DoubleVar(value=float(self.orig_bg_volume.get()))
+        ttk.Scale(bg_vol_frame, from_=5, to=100, orient="horizontal", variable=self._bg_volume_scale_var,
+                  command=lambda v: [self.orig_bg_volume.set(int(float(v))), self.orig_bg_vol_label.configure(text=f"{int(float(v))}%")]).grid(row=0, column=1, sticky="ew")
+        self.orig_bg_vol_label = ttk.Label(bg_vol_frame, text=f"{self.orig_bg_volume.get()}%", width=6, anchor="e")
+        self.orig_bg_vol_label.grid(row=0, column=2, padx=(8, 0))
+
         section(3, "Blur Watermark Area")
         blur_row = ttk.Frame(tools)
         blur_row.grid(row=4, column=0, sticky="ew", pady=(5, 10))
@@ -465,10 +486,33 @@ class App(tk.Tk):
                                                "extra_opacity_label", f"{self.extra_text_opacity.get()*100:.0f}%", pady=(2, 2))
         self.extra_opacity_slider.bind("<ButtonRelease-1>", lambda _e: self._redraw_editor_items())
         ttk.Label(tools, text="Drag the text on the preview to move it", style="Muted.TLabel").grid(row=20, column=0, sticky="w", pady=(0, 10))
+
+        section(21, "Burmese Subtitles")
+        sub_header = ttk.Frame(tools)
+        sub_header.grid(row=22, column=0, sticky="ew", pady=(4, 2))
+        sub_header.columnconfigure(0, weight=1)
+        ttk.Checkbutton(sub_header, text="Burn Subtitles on Video", variable=self.burn_subtitles,
+                        command=self._redraw_editor_items).grid(row=0, column=0, sticky="w")
+        self._sub_size_scale_var = tk.DoubleVar(value=float(self.subtitle_size.get()))
+        sub_scale = slider_row(23, "Size", 18, 64, self._sub_size_scale_var,
+                               lambda v: self._int_slider_changed(v, self.subtitle_size, "sub_size_label"),
+                               "sub_size_label", str(int(self.subtitle_size.get())), pady=(0, 2))
+        sub_scale.bind("<ButtonRelease-1>", lambda _e: self._redraw_editor_items())
+        sub_style_row = ttk.Frame(tools)
+        sub_style_row.grid(row=24, column=0, sticky="ew", pady=(2, 6))
+        ttk.Label(sub_style_row, text="Color:").pack(side="left")
+        ttk.Combobox(sub_style_row, textvariable=self.subtitle_color, values=("#FFDE00", "#FFFFFF", "#38BDF8"), width=9, state="readonly").pack(side="left", padx=(4, 10))
+        ttk.Label(sub_style_row, text="Style:").pack(side="left")
+        ttk.Combobox(sub_style_row, textvariable=self.subtitle_style, values=("outline", "box"), width=9, state="readonly").pack(side="left", padx=(4, 0))
+        self.subtitle_color.trace_add("write", lambda *_a: self._redraw_editor_items())
+        self.subtitle_style.trace_add("write", lambda *_a: self._redraw_editor_items())
+        ttk.Label(tools, text="Drag subtitles on preview to position above blur boxes", style="Muted.TLabel").grid(row=25, column=0, sticky="w", pady=(0, 10))
+
         self._bind_wheel_recursive(tools, tools_canvas)
         # Job resume / config loads set the IntVars directly; keep the sliders in step.
         self.title_size.trace_add("write", lambda *_a: self._sync_int_slider(self.title_size, self._title_size_scale_var, "title_size_label"))
         self.extra_text_size.trace_add("write", lambda *_a: self._sync_int_slider(self.extra_text_size, self._extra_size_scale_var, "extra_size_label"))
+        self.subtitle_size.trace_add("write", lambda *_a: self._sync_int_slider(self.subtitle_size, self._sub_size_scale_var, "sub_size_label"))
 
         main.add(left, weight=3)
         main.add(preview_box, weight=6)
@@ -788,6 +832,25 @@ class App(tk.Tk):
             except Exception as exc:
                 self._log(f"⚠️ Logo preview error: {exc}")
 
+        # Burmese Subtitles (rendered strictly above blur boxes)
+        if self.burn_subtitles.get():
+            sub_txt = "ဒါကတော့ မြန်မာစာတန်းထိုး နမူနာ ဖြစ်ပါတယ်"
+            sx = ox + float(self.subtitle_pos[0]) * pw
+            sy = oy + float(self.subtitle_pos[1]) * ph
+            fs_val = float(self.subtitle_size.get())
+            if fs_val <= 12.0:
+                sfs = max(9, int(round(ph * (fs_val / 100.0))))
+            else:
+                sfs = max(9, int(fs_val * pw / max(1, self._output_canvas()[0])))
+            sub_col = self.subtitle_color.get() or "#FFDE00"
+            if self.subtitle_style.get() == "box":
+                bw = int(pw * 0.70)
+                bh = int(sfs * 2.2)
+                c.create_rectangle(sx - bw // 2, sy - bh // 2, sx + bw // 2, sy + bh // 2, fill="#151922", outline="#303744", tags=("editor", "subtitle"))
+            else:
+                c.create_text(sx+2, sy+2, text=sub_txt, fill="#000000", anchor="center", font=("Myanmar Text", sfs, "bold"), width=int(pw*0.85), tags=("editor", "subtitle"))
+            c.create_text(sx, sy, text=sub_txt, fill=sub_col, anchor="center", font=("Myanmar Text", sfs, "bold"), width=int(pw*0.85), tags=("editor", "subtitle"))
+
     def _preview_press(self, event) -> None:
         x, y = self._preview_xy(event)
         if self._draw_blur_mode:
@@ -808,6 +871,8 @@ class App(tk.Tk):
             blur = next((z for z in t if z.startswith("blur_") and not z.startswith("blur_handle_")), None)
             if handle:
                 i = int(handle.rsplit("_",1)[1]); self.selected_blur=i; self._drag_kind="blur_resize"; self._drag_index=i; self._drag_original=dict(self.blur_boxes[i]); break
+            if "subtitle" in t:
+                self._drag_kind="subtitle"; break
             if "title" in t:
                 self._drag_kind="title"; break
             if "extra_text" in t:
@@ -827,7 +892,9 @@ class App(tk.Tk):
             return
         ox, oy, pw, ph = self._preview_bounds()
         dx=(x-self._drag_start[0])/pw; dy=(y-self._drag_start[1])/ph
-        if self._drag_kind == "title":
+        if self._drag_kind == "subtitle":
+            self.subtitle_pos=[(x-ox)/pw, (y-oy)/ph]
+        elif self._drag_kind == "title":
             self.title_pos=[(x-ox)/pw, (y-oy)/ph]
         elif self._drag_kind == "extra_text":
             self.extra_text_pos=[(x-ox)/pw, (y-oy)/ph]
@@ -1019,6 +1086,13 @@ class App(tk.Tk):
         self.cfg["extra_text_position"] = settings["overlays"].get("extra_text_position", [0.50, 0.84])
         self.cfg["extra_text_font_size"] = settings["overlays"].get("extra_text_font_size", 42)
         self.cfg["extra_text_opacity"] = settings["overlays"].get("extra_text_opacity", 0.65)
+        self.cfg["enable_original_background"] = bool(settings.get("enable_original_background", False))
+        self.cfg["original_background_volume"] = int(settings.get("original_background_volume", 25))
+        self.cfg["burn_subtitles"] = bool(settings["overlays"].get("burn_subtitles", True))
+        self.cfg["subtitle_position"] = settings["overlays"].get("subtitle_position", [0.50, 0.86])
+        self.cfg["subtitle_font_size"] = settings["overlays"].get("subtitle_font_size", 34)
+        self.cfg["subtitle_font_color"] = settings["overlays"].get("subtitle_font_color", "#FFDE00")
+        self.cfg["subtitle_style"] = settings["overlays"].get("subtitle_style", "outline")
         self.cfg["preview_seek_seconds"] = float(self.preview_time.get())
         save_config(self.cfg)
 
@@ -1066,6 +1140,13 @@ class App(tk.Tk):
             "extra_text_position": [float(self.extra_text_pos[0]), float(self.extra_text_pos[1])],
             "extra_text_font_size": int(self.extra_text_size.get()),
             "extra_text_opacity": float(self.extra_text_opacity.get()),
+            "burn_subtitles": bool(self.burn_subtitles.get()),
+            "subtitle_position": [float(self.subtitle_pos[0]), float(self.subtitle_pos[1])],
+            "subtitle_font_size": float(self.subtitle_size.get()),
+            "subtitle_size_percent": float(self.subtitle_size.get()) if float(self.subtitle_size.get()) <= 12.0 else 3.6,
+            "subtitle_box_width_percent": 85.0,
+            "subtitle_font_color": self.subtitle_color.get() or "#FFDE00",
+            "subtitle_style": self.subtitle_style.get() or "outline",
         }
         if overlays["logo_path"] and not Path(overlays["logo_path"]).is_file():
             raise ValueError("Logo image path မမှန်ပါ။")
@@ -1085,6 +1166,8 @@ class App(tk.Tk):
             "mirror_video": bool(self.mirror_video.get()),
             "voice_volume_percent": int(self.voice_volume.get()),
             "short_pauses": bool(self.short_pauses.get()),
+            "enable_original_background": bool(self.enable_orig_bg.get()),
+            "original_background_volume": int(self.orig_bg_volume.get()),
             "output_ratio": self.output_ratio.get() if self.output_ratio.get() in OUTPUT_RATIOS else "16:9",
             "frame_fill": self._fill_code() if self._fill_code() in FRAME_FILLS else "blur",
             "zoom_factor": zoom,
@@ -1343,6 +1426,8 @@ class App(tk.Tk):
             "short_pauses": bool(settings.get("short_pauses", True)),
             "output_ratio": settings.get("output_ratio", "16:9"),
             "frame_fill": settings.get("frame_fill", "blur"),
+            "enable_original_background": bool(settings.get("enable_original_background", False)),
+            "original_background_volume": int(settings.get("original_background_volume", 25)),
             "stop_file": str(stop_file),
         })
         result = self._run_child("render_worker.py", render_cfg, "STEP 2 — Edge TTS + Smart Sync").get("result") or {}

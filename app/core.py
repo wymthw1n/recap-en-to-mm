@@ -10,10 +10,15 @@ import re
 import unicodedata
 import threading
 import time
+import sys
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Callable, Iterable
 
+_PROJECT_ROOT = Path(__file__).resolve().parents[1]
+if str(_PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(_PROJECT_ROOT))
+from services.subtitle_service import SubtitleService
 
 LogFn = Callable[[str], None]
 def _noop(_: str) -> None:
@@ -348,6 +353,78 @@ def concat_audio(ffmpeg: str, parts: list[Path], output: Path, work_dir: Path) -
         raise RuntimeError(f"Audio concat failed:\n{result.stderr[-4000:]}")
 
 
+def render_bg_audio_part(
+    ffmpeg: str,
+    full_bg_wav: Path,
+    output_part_wav: Path,
+    start_sec: float,
+    end_sec: float,
+    target_duration: float,
+) -> Path:
+    src_dur = max(0.01, float(end_sec) - float(start_sec))
+    target_dur = max(0.01, float(target_duration))
+    tempo = src_dur / target_dur
+
+    filters: list[str] = []
+    t = tempo
+    while t < 0.5:
+        filters.append("atempo=0.5")
+        t /= 0.5
+    while t > 2.0:
+        filters.append("atempo=2.0")
+        t /= 2.0
+    filters.append(f"atempo={t:.6f}")
+    filters.append("apad")
+
+    filter_str = ",".join(filters)
+    cmd = [
+        ffmpeg, "-y", "-hide_banner", "-loglevel", "error",
+        "-ss", f"{start_sec:.3f}", "-to", f"{end_sec:.3f}",
+        "-i", str(full_bg_wav),
+        "-af", filter_str,
+        "-t", f"{target_dur:.3f}",
+        "-ar", "48000", "-ac", "2",
+        "-c:a", "pcm_s16le",
+        str(output_part_wav),
+    ]
+    res = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", errors="replace")
+    if res.returncode != 0:
+        raise RuntimeError(f"Background audio part render failed:\n{res.stderr[-2000:]}")
+    return output_part_wav
+
+
+def mix_narration_and_background(
+    ffmpeg: str,
+    voice_audio: Path,
+    bg_audio: Path,
+    output_audio: Path,
+    bg_volume_percent: int = 25,
+    voice_volume_percent: int = 100,
+) -> Path:
+    v_gain = max(0.1, min(3.0, int(voice_volume_percent) / 100.0))
+    bg_gain = max(0.01, min(2.0, int(bg_volume_percent) / 100.0))
+    filter_complex = (
+        f"[0:a]volume={v_gain:.3f},asplit=2[v1][v2];"
+        f"[1:a]volume={bg_gain:.3f}[bg];"
+        f"[bg][v1]sidechaincompress=threshold=0.08:ratio=4:attack=100:release=600[ducked_bg];"
+        f"[v2][ducked_bg]amix=inputs=2:duration=first:dropout_transition=2,alimiter=limit=0.95:level=disabled[aout]"
+    )
+    cmd = [
+        ffmpeg, "-y", "-hide_banner", "-loglevel", "error",
+        "-i", str(voice_audio),
+        "-i", str(bg_audio),
+        "-filter_complex", filter_complex,
+        "-map", "[aout]",
+        "-ar", "48000", "-ac", "2",
+        "-c:a", "pcm_s16le",
+        str(output_audio),
+    ]
+    res = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", errors="replace")
+    if res.returncode != 0:
+        raise RuntimeError(f"Narration and background mixing failed:\n{res.stderr[-2000:]}")
+    return output_audio
+
+
 def _sync_filter(
     source_duration: float,
     target_duration: float,
@@ -632,6 +709,10 @@ def render_video_part(
         "-i", str(source), "-an",
     ]
 
+    out_path = Path(output)
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    tmp_output = out_path.with_name(f".tmp_{os.getpid()}_{time.time_ns()}_{out_path.name}")
+
     if metrics.get("hybrid_used", 0.0) >= 0.5:
         graph, out_label, metrics = _distributed_freeze_graph(
             source_duration=source_duration,
@@ -649,7 +730,7 @@ def render_video_part(
             "-map", out_label,
             *frame_lock,
             *_encoder_args(encoder),
-            "-movflags", "+faststart", str(output),
+            "-movflags", "+faststart", str(tmp_output),
         ]
     else:
         visual, zoom = _visual_filters(mirror_video, zoom_factor, layout)
@@ -665,13 +746,26 @@ def render_video_part(
             "-vf", vf,
             *frame_lock,
             *_encoder_args(encoder),
-            "-movflags", "+faststart", str(output),
+            "-movflags", "+faststart", str(tmp_output),
         ]
 
     result = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", errors="replace")
-    if result.returncode != 0:
+    if result.returncode != 0 or not tmp_output.is_file():
+        tmp_output.unlink(missing_ok=True)
         raise RuntimeError(f"Video segment render failed ({encoder}):\n{result.stderr[-4000:]}")
+    tmp_output.replace(out_path)
     return metrics
+
+
+def is_valid_mp4(ffprobe: str, path: Path) -> bool:
+    if not path.is_file() or path.stat().st_size < 1000:
+        return False
+    p = subprocess.run(
+        [ffprobe, "-v", "error", "-select_streams", "v:0", "-show_entries", "stream=codec_name", "-of", "csv=p=0", str(path)],
+        capture_output=True, text=True, encoding="utf-8", errors="replace",
+    )
+    return p.returncode == 0 and bool(p.stdout.strip()) and "Invalid" not in p.stderr and "Error" not in p.stderr
+
 
 def concat_video_parts(ffmpeg: str, parts: list[Path], output: Path, work_dir: Path) -> None:
     list_file = work_dir / "video_parts.txt"
@@ -680,6 +774,8 @@ def concat_video_parts(ffmpeg: str, parts: list[Path], output: Path, work_dir: P
     result = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", errors="replace")
     if result.returncode != 0:
         raise RuntimeError(f"Video concat failed:\n{result.stderr[-4000:]}")
+    if result.stderr and any(err in result.stderr for err in ("Error during demuxing", "Invalid data found", "Invalid NAL unit")):
+        raise RuntimeError(f"Video concat demuxing error detected:\n{result.stderr[-4000:]}")
 
 
 def mux_audio(ffmpeg: str, video: Path, audio: Path, output: Path, volume_percent: int = 100) -> None:
@@ -810,7 +906,10 @@ def apply_production_overlays(
     logo_path = str(overlays.get("logo_path") or "").strip() if logo_enabled else ""
     logo_file = Path(logo_path) if logo_path else None
     extra_text = str(overlays.get("extra_text") or "").strip()
-    if not boxes and not title_text and not extra_text and not (logo_file and logo_file.is_file()):
+    subtitle_ass_path = overlays.get("subtitles_ass_path")
+    burn_subs = bool(overlays.get("burn_subtitles", False))
+    has_subtitles = bool(burn_subs and subtitle_ass_path and Path(subtitle_ass_path).is_file())
+    if not boxes and not title_text and not extra_text and not (logo_file and logo_file.is_file()) and not has_subtitles:
         return input_video
 
     cmd = [ffmpeg, "-y", "-hide_banner", "-loglevel", "error", "-i", str(input_video)]
@@ -904,6 +1003,13 @@ def apply_production_overlays(
         graph.append(f"{current}[etxt]overlay=x='W*{ex:.6f}-w/2':y='H*{ey:.6f}-h/2':eof_action=repeat[{out}]")
         current = f"[{out}]"
 
+    # Layer 3 (TOP): Render Burmese Subtitles strictly above the blur boxes and all other layers
+    if has_subtitles:
+        ass_clean = str(subtitle_ass_path).replace("\\", "/").replace(":", "\\:")
+        out = "vsubs"
+        graph.append(f"{current}ass=filename='{ass_clean}'[{out}]")
+        current = f"[{out}]"
+
     graph.append(f"{current}format=yuv420p[vout]")
     cmd += ["-filter_complex", ";".join(graph), "-map", "[vout]", "-an"] + _encoder_args(encoder) + ["-movflags", "+faststart", str(output_video)]
     p = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", errors="replace")
@@ -925,9 +1031,14 @@ class PipelinePaths:
     root: Path
     tts_parts: Path
     video_parts: Path
+    bg_parts: Path
     work: Path
     checkpoint: Path
     voice: Path
+    synced_background: Path
+    mixed_audio: Path
+    subtitles_srt: Path
+    subtitles_ass: Path
     synced_video_noaudio: Path
     decorated_video_noaudio: Path
     plan: Path
@@ -938,16 +1049,22 @@ def make_paths(job_dir: Path) -> PipelinePaths:
     root = job_dir / "edge_tts_smart_sync"
     tts = root / "tts_parts"
     video = root / "video_parts"
+    bg = root / "bg_parts"
     work = root / "work"
-    for p in (root, tts, video, work):
+    for p in (root, tts, video, bg, work):
         p.mkdir(parents=True, exist_ok=True)
     return PipelinePaths(
         root=root,
         tts_parts=tts,
         video_parts=video,
+        bg_parts=bg,
         work=work,
         checkpoint=root / "checkpoint.json",
         voice=root / "voice_edge_tts.wav",
+        synced_background=work / "synced_background.wav",
+        mixed_audio=work / "final_mixed_audio.wav",
+        subtitles_srt=job_dir / "subtitles.srt",
+        subtitles_ass=job_dir / "subtitles.ass",
         synced_video_noaudio=work / "video_synced_noaudio.mp4",
         decorated_video_noaudio=work / "video_synced_decorated_noaudio.mp4",
         plan=root / "smart_sync_plan_edge_tts.json",
@@ -1002,6 +1119,9 @@ class EdgeSmartSync:
         self.render_final_video = bool(render_final_video)
         # Short pauses: see trim_edge_silence. Set by render_worker from the UI box.
         self.short_pauses = False
+        self.enable_original_background = False
+        self.original_background_volume = 25
+        self.voice_volume_percent = 100
         self.overlays = dict(overlays or {})
         self.log = log
         self.progress = progress or (lambda a, b, c: None)
@@ -1160,6 +1280,76 @@ class EdgeSmartSync:
         final_audio_duration = probe_duration(self.ffprobe, paths.voice)
         self.log(f"✅ {paths.voice.name} = {final_audio_duration:.2f}s")
 
+        # Generate Subtitles strictly using the translated Burmese narration scripts and exact Smart Sync timings
+        sub_service = SubtitleService()
+        self.log("📝 Generating Burmese subtitles (.srt & .ass) strictly matching narration script...")
+        sub_service.generate_srt(timing, paths.subtitles_srt)
+
+        sub_pos = self.overlays.get("subtitle_position") or [0.50, 0.86]
+        sub_size = float(self.overlays.get("subtitle_size_percent") or self.overlays.get("subtitle_font_size") or 3.6)
+        sub_width = float(self.overlays.get("subtitle_box_width_percent", 85) or 85)
+        sub_color = str(self.overlays.get("subtitle_font_color", "#FFDE00") or "#FFDE00")
+        sub_style = str(self.overlays.get("subtitle_style", "outline") or "outline")
+        sub_font = str(self.overlays.get("subtitle_font_name", "Noto Sans Myanmar") or "Noto Sans Myanmar")
+
+        sub_service.generate_ass(
+            timing,
+            paths.subtitles_ass,
+            font_name=sub_font,
+            font_color=sub_color,
+            font_size=sub_size,
+            position=sub_pos,
+            style=sub_style,
+            video_width=layout["cw"],
+            video_height=layout["ch"],
+            box_width_percent=sub_width,
+        )
+        self.log(f"✅ Burmese subtitles ready: {paths.subtitles_srt.name} & {paths.subtitles_ass.name}")
+        self.overlays["subtitles_ass_path"] = str(paths.subtitles_ass)
+
+        # Background Audio Isolation & Synchronization
+        final_mixed_audio = paths.voice
+        if self.enable_original_background:
+            self.log("🎵 Isolating original video background audio (removing speech/vocals)...")
+            from services.vocal_remover_service import VocalRemoverService
+            vocal_remover = VocalRemoverService(ffmpeg_path=self.ffmpeg, log=self.log)
+            full_bg_wav = paths.work / "source_background_no_vocals.wav"
+            cached_bg_wav = self.job_dir / "original_background_no_vocals.wav"
+            vocal_remover.extract_clean_background(
+                source, full_bg_wav, paths.work, cache_path=cached_bg_wav
+            )
+
+            self.log("⏱️ Synchronizing background audio slices with Smart Sync cuts...")
+            bg_parts: list[Path] = []
+            for idx, (seg, item) in enumerate(zip(segments, timing), 1):
+                base = segment_basename(seg)
+                dst_bg = paths.bg_parts / f"{base}.wav"
+                target_d = float(item["audio_duration"])
+                render_bg_audio_part(
+                    self.ffmpeg,
+                    full_bg_wav,
+                    dst_bg,
+                    float(seg["video_start"]),
+                    float(seg["video_end"]),
+                    target_d,
+                )
+                bg_parts.append(dst_bg)
+
+            self.log("🔗 Concatenating synced background audio parts...")
+            concat_audio(self.ffmpeg, bg_parts, paths.synced_background, paths.work)
+
+            self.log(f"🎛️ Mixing narration voiceover and ducked background sound ({self.original_background_volume}%)...")
+            mix_narration_and_background(
+                self.ffmpeg,
+                paths.voice,
+                paths.synced_background,
+                paths.mixed_audio,
+                bg_volume_percent=self.original_background_volume,
+                voice_volume_percent=int(getattr(self, "voice_volume_percent", 100) or 100),
+            )
+            final_mixed_audio = paths.mixed_audio
+            self.log("✅ Background sound dynamically ducked and mixed!")
+
         sync_segments = [
             {
                 "video_start": item["video_start"],
@@ -1186,9 +1376,11 @@ class EdgeSmartSync:
         if not self.render_final_video:
             self.log("✅ Audio + Smart Sync plan READY (final video render skipped).")
             return {
-                "audio": str(paths.voice),
+                "audio": str(final_mixed_audio),
                 "plan": str(paths.plan),
                 "final": None,
+                "subtitles_srt": str(paths.subtitles_srt),
+                "subtitles_ass": str(paths.subtitles_ass),
                 "segments": len(timing),
             }
 
@@ -1225,10 +1417,12 @@ class EdgeSmartSync:
             }, sort_keys=True).encode()
             vfp = hashlib.sha256(vfp_raw).hexdigest()
             rec = checkpoint["video"].get(base, {})
-            reusable = rec.get("fingerprint") == vfp and dst.is_file() and dst.stat().st_size > 5000
+            reusable = rec.get("fingerprint") == vfp and is_valid_mp4(self.ffprobe, dst)
             if reusable:
                 self.log(f"♻️ VIDEO [{idx}/{len(segments)}] {base}.mp4 reuse")
             else:
+                if dst.is_file():
+                    dst.unlink(missing_ok=True)
                 self.progress(idx - 1, len(segments), f"Smart Sync video {idx}/{len(segments)}")
                 self.log(f"🎞️ VIDEO [{idx}/{len(segments)}] {base} → {target:.2f}s")
                 try:
@@ -1292,24 +1486,26 @@ class EdgeSmartSync:
         concat_video_parts(self.ffmpeg, video_parts, paths.synced_video_noaudio, paths.work)
         self._log_sync_check(paths, segments, checkpoint)
         video_for_mux = paths.synced_video_noaudio
-        if self.overlays.get("blur_boxes") or str(self.overlays.get("title_text") or "").strip() or str(self.overlays.get("logo_path") or "").strip() or str(self.overlays.get("extra_text") or "").strip():
-            self.log("🎨 Production overlay pass — Blur / Title PNG / Logo...")
+        burn_subs = bool(self.overlays.get("burn_subtitles", False))
+        has_sub_overlay = burn_subs and bool(self.overlays.get("subtitles_ass_path") and Path(self.overlays["subtitles_ass_path"]).is_file())
+        if self.overlays.get("blur_boxes") or str(self.overlays.get("title_text") or "").strip() or str(self.overlays.get("logo_path") or "").strip() or str(self.overlays.get("extra_text") or "").strip() or has_sub_overlay:
+            self.log("🎨 Production overlay pass — Blur / Title PNG / Logo / Burmese Subtitles...")
             video_for_mux = apply_production_overlays(
                 self.ffmpeg, paths.synced_video_noaudio, paths.decorated_video_noaudio,
                 self.overlays, encoder, paths.work, self.log, frame_size=(layout["cw"], layout["ch"]),
             )
-        self.log("🎧 Edge TTS audio mux...")
-        volume_percent = int(getattr(self, "voice_volume_percent", 100) or 100)
-        if volume_percent != 100:
-            self.log(f"🔊 Voice volume {volume_percent}% applied at final mux (limiter on)")
-        mux_audio(self.ffmpeg, video_for_mux, paths.voice, paths.final, volume_percent)
+        self.log("🎧 Final audio & video mux...")
+        mux_volume = 100 if self.enable_original_background else int(getattr(self, "voice_volume_percent", 100) or 100)
+        mux_audio(self.ffmpeg, video_for_mux, final_mixed_audio, paths.final, mux_volume)
         final_duration = probe_duration(self.ffprobe, paths.final)
         self.log(f"✅ FINAL READY: {paths.final}")
         self.log(f"⏱️ Final duration: {final_duration:.2f}s")
         return {
-            "audio": str(paths.voice),
+            "audio": str(final_mixed_audio),
             "plan": str(paths.plan),
             "final": str(paths.final),
+            "subtitles_srt": str(paths.subtitles_srt),
+            "subtitles_ass": str(paths.subtitles_ass),
             "segments": len(timing),
             "duration": final_duration,
         }

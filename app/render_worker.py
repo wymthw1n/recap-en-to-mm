@@ -59,6 +59,8 @@ def main() -> int:
         )
         runner.voice_volume_percent = int(cfg.get("voice_volume_percent", 100) or 100)
         runner.short_pauses = bool(cfg.get("short_pauses", False))
+        runner.enable_original_background = bool(cfg.get("enable_original_background", False))
+        runner.original_background_volume = int(cfg.get("original_background_volume", 25) or 25)
         result = runner.run()
         emit("result", result=result)
         return 0
