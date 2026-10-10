@@ -146,7 +146,7 @@ async def api_download_url(req: DownloadRequest) -> dict[str, Any]:
 class CreateJobRequest(BaseModel):
     source_id: str
     voice: Optional[str] = "my-MM-ThihaNeural"
-    edge_tts_rate: Optional[str] = "+0%"
+    edge_tts_rate: Optional[str] = "+30%"
     edge_tts_pitch: Optional[str] = "+0Hz"
     output_ratio: Optional[str] = "16:9"
     frame_fill: Optional[str] = "blur"
@@ -157,7 +157,7 @@ class CreateJobRequest(BaseModel):
     reuse_plan: Optional[bool] = True
     max_video_speed: Optional[float] = 1.25
     max_video_slow: Optional[float] = 1.35
-    enable_original_background: Optional[bool] = False
+    enable_original_background: Optional[bool] = True
     original_background_volume: Optional[int] = 25
     overlays: Optional[dict[str, Any]] = None
 
@@ -189,7 +189,7 @@ def api_create_job(req: CreateJobRequest) -> dict[str, Any]:
     job_id = job_dir.name
 
     overlays = req.overlays or {
-        "blur_boxes": [],
+        "blur_boxes": [{"x": 0.075, "y": 0.82, "w": 0.85, "h": 0.10}],
         "blur_strength": 18,
         "title_text": "",
         "title_position": [0.50, 0.12],

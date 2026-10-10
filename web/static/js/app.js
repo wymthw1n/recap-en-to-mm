@@ -12,7 +12,7 @@ document.addEventListener("DOMContentLoaded", () => {
     activeOverlayTarget: "title", // "title" | "subtitle" | "logo" | "extra" | "blur"
     activeBlurIndex: 0,
     tapToPlaceEnabled: false,
-    enable_original_background: false,
+    enable_original_background: true,
     original_background_volume: 25,
     overlays: {
       title_text: "",
@@ -32,7 +32,9 @@ document.addEventListener("DOMContentLoaded", () => {
       subtitle_width_pct: 85,
       subtitle_color: "#FFDE00",
       subtitle_style: "outline",
-      blur_boxes: [],
+      blur_boxes: [
+        { x: 0.075, y: 0.82, w: 0.85, h: 0.10 }
+      ],
     },
   };
 
@@ -47,6 +49,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (mobileNavSelect && mobileNavSelect.value !== target) {
       mobileNavSelect.value = target;
     }
+    window.scrollTo({ top: 0, behavior: "smooth" });
 
     if (target === "sources") loadSources();
     if (target === "jobs") loadJobs();
@@ -73,6 +76,7 @@ document.addEventListener("DOMContentLoaded", () => {
   function setMobileStudioView(view) {
     if (workspaceLayout) workspaceLayout.dataset.mobileView = view;
     viewTabBtns.forEach(b => b.classList.toggle("active", b.dataset.view === view));
+    window.scrollTo({ top: 0, behavior: "smooth" });
     if (view === "center") {
       updateOverlayPositions();
     }
@@ -711,7 +715,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   if (addBlurBtn) {
     addBlurBtn.addEventListener("click", () => {
-      state.overlays.blur_boxes.push({ x: 0.10, y: 0.10, w: 0.25, h: 0.12 });
+      state.overlays.blur_boxes.push({ x: 0.075, y: 0.82, w: 0.85, h: 0.10 });
       state.activeBlurIndex = state.overlays.blur_boxes.length - 1;
       setActiveOverlayTarget("blur");
       renderBlurBoxesList();
@@ -742,7 +746,7 @@ document.addEventListener("DOMContentLoaded", () => {
       segBtns.forEach(b => b.classList.toggle("active", b.dataset.target === target));
     }
     if (state.activeOverlayTarget === "blur" && state.overlays.blur_boxes.length === 0) {
-      state.overlays.blur_boxes.push({ x: 0.10, y: 0.10, w: 0.25, h: 0.12 });
+      state.overlays.blur_boxes.push({ x: 0.075, y: 0.82, w: 0.85, h: 0.10 });
       state.activeBlurIndex = 0;
       renderBlurBoxesList();
       renderBlurBoxesOnCanvas();
@@ -1675,4 +1679,6 @@ document.addEventListener("DOMContentLoaded", () => {
   // Initial load
   loadSources();
   loadJobs();
+  renderBlurBoxesList();
+  renderBlurBoxesOnCanvas();
 });

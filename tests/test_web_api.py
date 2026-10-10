@@ -49,6 +49,15 @@ class WebApiTests(unittest.TestCase):
         self.assertEqual(updated.get("edge_tts_voice"), "my-MM-NilarNeural")
         self.assertEqual(updated.get("gemini_text_model"), "gemini-3.5-flash-lite")
 
+        # 3. Restore defaults so disk config remains at Thiha defaults
+        restore_payload = {
+            "edge_tts_voice": "my-MM-ThihaNeural",
+            "gemini_text_model": "gemini-3.5-flash",
+            "edge_tts_rate": "+30%",
+            "max_video_speed": 1.25,
+        }
+        self.client.post("/api/settings", json=restore_payload)
+
     def test_sources_and_jobs_storage(self):
         # Insert mock source
         src_id = "test_src_001"

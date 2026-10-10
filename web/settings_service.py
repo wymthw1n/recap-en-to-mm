@@ -56,11 +56,15 @@ def get_settings() -> dict[str, Any]:
         "gemini_proxy": proxy,
         "gemini_text_model": cfg.get("gemini_text_model", "gemini-3.5-flash"),
         "edge_tts_voice": cfg.get("edge_tts_voice", "my-MM-ThihaNeural"),
-        "edge_tts_rate": cfg.get("edge_tts_rate", "+0%"),
+        "edge_tts_rate": cfg.get("edge_tts_rate", "+30%"),
         "max_video_speed": cfg.get("max_video_speed", 1.25),
         "output_ratio": cfg.get("output_ratio", "16:9"),
         "frame_fill": cfg.get("frame_fill", "blur"),
         "short_pauses": cfg.get("short_pauses", True),
+        "enable_original_background": cfg.get("enable_original_background", True),
+        "original_background_volume": cfg.get("original_background_volume", 25),
+        "blur_box_width_pct": cfg.get("blur_box_width_pct", 85),
+        "blur_box_height_pct": cfg.get("blur_box_height_pct", 10),
     }
 
 

@@ -175,6 +175,23 @@ step_interactive_configuration() {
       fi
     fi
   fi
+
+  # Ensure default initial config.json values for deployment
+  if [ ! -f "$DIR/config.json" ]; then
+    cat <<'EOF' > "$DIR/config.json"
+{
+  "gemini_text_model": "gemini-3.5-flash",
+  "edge_tts_voice": "my-MM-ThihaNeural",
+  "edge_tts_rate": "+30%",
+  "enable_original_background": true,
+  "original_background_volume": 25,
+  "blur_box_width_pct": 85,
+  "blur_box_height_pct": 10,
+  "max_video_speed": 1.25
+}
+EOF
+    echo -e "${GREEN}✓ Initial config.json initialized with Thiha, +30% speed, enabled background sound, and 85%×10% blur box${NC}"
+  fi
 }
 
 # 5. Caddy Reverse Proxy Setup

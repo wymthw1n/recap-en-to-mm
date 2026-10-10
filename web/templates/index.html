@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>Recap Production — English → Myanmar</title>
   <link rel="stylesheet" href="/static/css/app.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -24,10 +24,10 @@
       <!-- Mobile Dropdown Navigation -->
       <div class="mobile-nav-wrap">
         <select id="mobileNavSelect" class="mobile-nav-select" aria-label="Navigation">
-          <option value="workspace" selected>⚡ Workspace</option>
-          <option value="sources">📁 Sources</option>
-          <option value="jobs">🎬 Jobs</option>
-          <option value="settings">⚙️ Settings</option>
+          <option value="workspace" selected>Workspace</option>
+          <option value="sources">Sources</option>
+          <option value="jobs">Jobs</option>
+          <option value="settings">Settings</option>
         </select>
       </div>
 
@@ -60,9 +60,18 @@
       <section id="tab-workspace" class="tab-pane active">
         <!-- Mobile Studio View Tabs -->
         <div class="mobile-view-tabs">
-          <button type="button" class="view-tab-btn active" data-view="center">Preview & Align</button>
-          <button type="button" class="view-tab-btn" data-view="left">Video & Audio</button>
-          <button type="button" class="view-tab-btn" data-view="right">Subtitles & Framing</button>
+          <button type="button" class="view-tab-btn active" data-view="center">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><polygon points="10 8 16 11.5 10 15 10 8"/></svg>
+            <span>Preview & Align</span>
+          </button>
+          <button type="button" class="view-tab-btn" data-view="left">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/></svg>
+            <span>Video & Audio</span>
+          </button>
+          <button type="button" class="view-tab-btn" data-view="right">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><line x1="7" y1="15" x2="17" y2="15"/><line x1="7" y1="11" x2="13" y2="11"/></svg>
+            <span>Subtitles & Framing</span>
+          </button>
         </div>
 
         <div class="workspace-layout" data-mobile-view="center">
@@ -128,7 +137,7 @@
                 <div class="form-row">
                   <label>Voice</label>
                   <select id="edgeVoiceSelect">
-                    <option value="my-MM-ThihaNeural">Thiha (Male)</option>
+                    <option value="my-MM-ThihaNeural" selected>Thiha (Male)</option>
                     <option value="my-MM-NilarNeural">Nilar (Female)</option>
                   </select>
                 </div>
@@ -136,9 +145,9 @@
                 <div class="form-row">
                   <div class="label-with-val">
                     <label>Speed</label>
-                    <span id="voiceSpeedVal">+0%</span>
+                    <span id="voiceSpeedVal">+30%</span>
                   </div>
-                  <input type="range" id="voiceSpeedSlider" min="-50" max="100" value="0" step="5">
+                  <input type="range" id="voiceSpeedSlider" min="-50" max="100" value="30" step="5">
                 </div>
 
                 <div class="form-row">
@@ -163,7 +172,7 @@
               <div class="card-header space-between">
                 <h3>Background Sound</h3>
                 <label class="switch-label small">
-                  <input type="checkbox" id="enableOrigBgCheck">
+                  <input type="checkbox" id="enableOrigBgCheck" checked>
                   <span>Enable</span>
                 </label>
               </div>
