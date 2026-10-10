@@ -200,6 +200,7 @@ class JobRunner:
         if not stop_ev.is_set():
             stop_file.unlink(missing_ok=True)
 
+        start_time = time.time()
         update_job_progress(job_id, status="running", stage="Starting", error_message="")
         self._broadcast(job_id, {"kind": "status", "status": "running"})
 
@@ -284,16 +285,37 @@ class JobRunner:
 
             final_mp4 = render_result.get("final") or str(job_dir / "edge_tts_smart_sync" / "final_edge_tts_smart_sync.mp4")
             if Path(final_mp4).is_file():
+                elapsed = time.time() - start_time
+                if elapsed >= 60:
+                    mins = int(elapsed // 60)
+                    secs = int(elapsed % 60)
+                    dur_str = f"{mins}m {secs:02d}s ({elapsed:.1f}s)"
+                else:
+                    dur_str = f"{elapsed:.1f}s"
+
+                success_msg = f"✓ Recap video created successfully! Running duration: {dur_str}. Output: {final_mp4}"
+                try:
+                    with run_log.open("a", encoding="utf-8", errors="replace") as f:
+                        f.write(f"\n{success_msg}\n")
+                except Exception:
+                    pass
+                self._broadcast(job_id, {"kind": "log", "text": success_msg})
+
                 update_job_progress(
                     job_id,
                     status="completed",
-                    stage="Finished",
+                    stage=f"Finished in {dur_str}",
                     current=100,
                     total=100,
-                    label="Done",
+                    label=f"Done ({dur_str})",
                     output_video_path=str(final_mp4),
                 )
-                self._broadcast(job_id, {"kind": "done", "output": final_mp4})
+                self._broadcast(job_id, {
+                    "kind": "done",
+                    "output": final_mp4,
+                    "duration_sec": round(elapsed, 1),
+                    "duration_str": dur_str,
+                })
             else:
                 raise RuntimeError(f"Output video file not created: {final_mp4}")
 

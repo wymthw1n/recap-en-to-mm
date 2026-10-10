@@ -1163,6 +1163,7 @@ class EdgeSmartSync:
             self.log(f"⚠️ Sync check skipped: {exc}")
 
     def run(self) -> dict[str, Any]:
+        t_start = time.time()
         source = self.source_path
         plan_file = self.plan_path
         if not source.is_file():
@@ -1498,8 +1499,15 @@ class EdgeSmartSync:
         mux_volume = 100 if self.enable_original_background else int(getattr(self, "voice_volume_percent", 100) or 100)
         mux_audio(self.ffmpeg, video_for_mux, final_mixed_audio, paths.final, mux_volume)
         final_duration = probe_duration(self.ffprobe, paths.final)
+        run_dur = time.time() - t_start
+        if run_dur >= 60:
+            m = int(run_dur // 60)
+            s = int(run_dur % 60)
+            run_dur_str = f"{m}m {s}s ({run_dur:.1f}s)"
+        else:
+            run_dur_str = f"{run_dur:.1f}s"
         self.log(f"✅ FINAL READY: {paths.final}")
-        self.log(f"⏱️ Final duration: {final_duration:.2f}s")
+        self.log(f"⏱️ Video length: {final_duration:.2f}s | Running duration: {run_dur_str}")
         return {
             "audio": str(final_mixed_audio),
             "plan": str(paths.plan),

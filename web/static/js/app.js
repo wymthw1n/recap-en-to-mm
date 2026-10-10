@@ -1243,7 +1243,12 @@ document.addEventListener("DOMContentLoaded", () => {
           setJobStatusBadge(ev.status);
         } else if (ev.kind === "done") {
           setJobStatusBadge("completed");
-          jobStageText.innerText = "Job Completed!";
+          const dur = ev.duration_str ? ` in ${ev.duration_str}` : "";
+          jobStageText.innerText = `Finished${dur}!`;
+          const lastLine = logLines.length > 0 ? logLines[logLines.length - 1] : "";
+          if (!lastLine.includes("Running duration")) {
+            appendLog(`✓ Recap video created successfully! Running duration: ${ev.duration_str || 'complete'}.`);
+          }
           startJobBtn.disabled = false;
           stopJobBtn.disabled = true;
           if (quickWatchBtn) quickWatchBtn.classList.remove("hidden");
