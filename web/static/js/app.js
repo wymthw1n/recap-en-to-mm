@@ -416,13 +416,16 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function setSubtitleY(val) {
-    const clamped = Math.max(10, Math.min(95, Math.round(val)));
+    const clamped = Math.max(8, Math.min(92, Math.round(val)));
     state.overlays.subtitle_pos[1] = clamped / 100.0;
+    state.overlays.subtitle_pos[0] = 0.50;
     if (subYSlider) subYSlider.value = clamped;
     if (subYVal) subYVal.innerText = `${clamped}%`;
     if (state.activeOverlayTarget === "subtitle") {
       posYSlider.value = clamped;
       posYVal.innerText = `${clamped}%`;
+      posXSlider.value = 50;
+      posXVal.innerText = "50%";
     }
     if (subYPresetBtns) {
       subYPresetBtns.forEach(b => {
@@ -764,7 +767,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (t === "title") {
       state.overlays.title_pos = [x, y];
     } else if (t === "subtitle") {
-      state.overlays.subtitle_pos = [x, y];
+      state.overlays.subtitle_pos = [0.50, Math.max(0.08, Math.min(0.92, y))];
     } else if (t === "logo") {
       state.overlays.logo_pos = [x, y];
     } else if (t === "extra") {
@@ -812,7 +815,11 @@ document.addEventListener("DOMContentLoaded", () => {
     posXVal.innerText = `${posXSlider.value}%`;
     const t = state.activeOverlayTarget;
     if (t === "title") state.overlays.title_pos[0] = x;
-    else if (t === "subtitle") state.overlays.subtitle_pos[0] = x;
+    else if (t === "subtitle") {
+      state.overlays.subtitle_pos[0] = 0.50;
+      posXSlider.value = 50;
+      posXVal.innerText = "50%";
+    }
     else if (t === "logo") state.overlays.logo_pos[0] = x;
     else if (t === "extra") state.overlays.extra_text_pos[0] = x;
     else if (t === "blur") {
@@ -980,8 +987,12 @@ document.addEventListener("DOMContentLoaded", () => {
     const clientX = e.clientX;
     const clientY = e.clientY;
     const rect = previewContainer.getBoundingClientRect();
-    const nx = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width - dragOffset.x));
-    const ny = Math.max(0, Math.min(1, (clientY - rect.top) / rect.height - dragOffset.y));
+    let nx = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width - dragOffset.x));
+    let ny = Math.max(0, Math.min(1, (clientY - rect.top) / rect.height - dragOffset.y));
+    if (activeDragTarget.elem === overlaySubtitle) {
+      nx = 0.50;
+      ny = Math.max(0.08, Math.min(0.92, ny));
+    }
     activeDragTarget.setPos([nx, ny]);
     syncPositionControlsToTarget();
     if (state.activeOverlayTarget === "subtitle" && subYSlider) {
@@ -1000,8 +1011,12 @@ document.addEventListener("DOMContentLoaded", () => {
     const clientX = e.touches[0].clientX;
     const clientY = e.touches[0].clientY;
     const rect = previewContainer.getBoundingClientRect();
-    const nx = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width - dragOffset.x));
-    const ny = Math.max(0, Math.min(1, (clientY - rect.top) / rect.height - dragOffset.y));
+    let nx = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width - dragOffset.x));
+    let ny = Math.max(0, Math.min(1, (clientY - rect.top) / rect.height - dragOffset.y));
+    if (activeDragTarget.elem === overlaySubtitle) {
+      nx = 0.50;
+      ny = Math.max(0.08, Math.min(0.92, ny));
+    }
     activeDragTarget.setPos([nx, ny]);
     syncPositionControlsToTarget();
     if (state.activeOverlayTarget === "subtitle" && subYSlider) {
@@ -1017,6 +1032,9 @@ document.addEventListener("DOMContentLoaded", () => {
   window.addEventListener("mouseup", () => { activeDragTarget = null; });
   window.addEventListener("touchend", () => { activeDragTarget = null; });
   window.addEventListener("resize", updateOverlayPositions);
+  if (previewImage) {
+    previewImage.addEventListener("load", updateOverlayPositions);
+  }
 
   // Bind Canvas Drag to Title, Extra, Logo, Subtitle
   setupCanvasDraggable(
@@ -1032,8 +1050,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
   setupCanvasDraggable(
     overlaySubtitle,
-    () => state.overlays.subtitle_pos,
-    ([nx, ny]) => { state.overlays.subtitle_pos = [nx, ny]; },
+    () => [0.50, state.overlays.subtitle_pos[1]],
+    ([nx, ny]) => {
+      state.overlays.subtitle_pos = [0.50, Math.max(0.08, Math.min(0.92, ny))];
+    },
     () => {
       state.activeOverlayTarget = "subtitle";
       segBtns.forEach(b => b.classList.toggle("active", b.dataset.target === "subtitle"));
@@ -1072,14 +1092,22 @@ document.addEventListener("DOMContentLoaded", () => {
     // Subtitle (Rendered strictly above blur box)
     if (overlaySubtitle) {
       overlaySubtitle.classList.toggle("hidden", !state.overlays.burn_subtitles);
-      overlaySubtitle.style.left = `${state.overlays.subtitle_pos[0] * 100}%`;
-      overlaySubtitle.style.top = `${state.overlays.subtitle_pos[1] * 100}%`;
+      const subPosY = (typeof state.overlays.subtitle_pos[1] === "number") ? state.overlays.subtitle_pos[1] : 0.86;
+      overlaySubtitle.style.left = "50%";
+      overlaySubtitle.style.top = `${subPosY * 100}%`;
+      overlaySubtitle.style.transform = "translate(-50%, -50%)";
+
       const containerH = previewContainer.clientHeight || 360;
       const sizePct = state.overlays.subtitle_size_pct || state.overlays.subtitle_size || 3.6;
-      const previewFontSize = Math.max(12, Math.round(containerH * (sizePct / 100.0)));
+      const previewFontSize = Math.max(10, Math.round(containerH * (sizePct / 100.0)));
       overlaySubtitle.style.fontSize = `${previewFontSize}px`;
-      const widthPct = state.overlays.subtitle_width_pct || 85;
+
+      const widthPct = Math.max(50, Math.min(95, state.overlays.subtitle_width_pct || 85));
+      overlaySubtitle.style.width = `${widthPct}%`;
       overlaySubtitle.style.maxWidth = `${widthPct}%`;
+      overlaySubtitle.style.minWidth = `${widthPct}%`;
+      overlaySubtitle.style.boxSizing = "border-box";
+
       overlaySubtitle.style.color = state.overlays.subtitle_color || "#FFDE00";
       if (state.overlays.subtitle_style === "box") {
         overlaySubtitle.classList.add("style-box");

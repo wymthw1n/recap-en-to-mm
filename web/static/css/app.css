@@ -393,15 +393,21 @@ input[type="range"]::-webkit-slider-thumb {
   text-shadow: 0 2px 4px rgba(0,0,0,0.95), 0 0 3px #000, 0 0 5px #000;
   font-weight: 700;
   text-align: center !important;
-  white-space: pre-wrap;
-  max-width: 85%;
+  white-space: normal;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
   line-height: 1.35;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  box-sizing: border-box;
+  box-sizing: border-box !important;
   touch-action: none;
+  width: 85%;
+  max-width: 85%;
+  min-width: 50%;
+  pointer-events: auto;
+  cursor: move;
 }
 .subtitle-elem #overlaySubtitleText,
 .subtitle-elem span,
@@ -409,6 +415,9 @@ input[type="range"]::-webkit-slider-thumb {
   display: block;
   text-align: center !important;
   width: 100%;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  pointer-events: none;
 }
 .subtitle-elem.style-box {
   background: rgba(0, 0, 0, 0.75);
@@ -416,6 +425,16 @@ input[type="range"]::-webkit-slider-thumb {
   border-radius: 6px;
   border: 1px solid rgba(255, 255, 255, 0.2);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
+}
+.subtitle-elem.active,
+.subtitle-elem:hover {
+  border: 1.5px dashed rgba(56, 189, 248, 0.85) !important;
+  box-shadow: 0 0 10px rgba(56, 189, 248, 0.35) !important;
+  background: transparent !important;
+}
+.subtitle-elem.style-box.active,
+.subtitle-elem.style-box:hover {
+  background: rgba(0, 0, 0, 0.75) !important;
 }
 
 /* Touch Steppers & Quick Mobile Presets */
