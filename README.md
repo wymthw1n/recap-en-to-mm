@@ -60,24 +60,29 @@ Narrator only · Whisper + Gemini · Microsoft Edge TTS (Myanmar) · Smart Sync
 
 ## Linux / VPS / Cloud One-Click Deployment (Interactive)
 
-Linux Server (Ubuntu / Debian / VPS) ပေါ်တွင် အောက်ပါ command ဖြင့် All-Ready Stage အထိ တစ်ချက်တည်း install လုပ်နိုင်ပါသည်:
+Linux Server (Ubuntu / Debian / VPS) ပေါ်တွင် အောက်ပါအတိုင်း တိုက်ရိုက် run နိုင်ပါသည် (chmod လုပ်စရာမလိုပါ):
 
 ```bash
 git clone https://github.com/wymthw1n/rc.git
 cd rc
-chmod +x deploy.sh
-sudo ./deploy.sh
+bash deploy.sh
 ```
 
-**Features of `./deploy.sh`:**
+သို့မဟုတ် One-Liner command:
+```bash
+git clone https://github.com/wymthw1n/rc.git && cd rc && bash deploy.sh
+```
+
+**Features of `bash deploy.sh`:**
+- **No chmod needed**: `bash deploy.sh` ဖြင့် တိုက်ရိုက် run နိုင်ပြီး root permissions လိုအပ်ပါက sudo ဖြင့် အလိုအလျောက် auto-elevate ပြုလုပ်ပေးပါသည်။
 - **Interactive Prompts**: Local port, Caddy public domain (`rc.<ip>.sslip.io`), Gemini API key, HF token များကို interactive wizard ဖြင့် သတ်မှတ်နိုင်ခြင်း။
 - **All-Ready AI Model Pre-warming**: Whisper `small.en` နှင့် Demucs ONNX vocal remover (`htdemucs_ft_vocals`) များကို pre-cache လုပ်ပေးသဖြင့် ပထမဆုံး video စတင်ချိန်တွင် စောင့်ဆိုင်းစရာ မလိုခြင်း။
 - **Systemd & Caddy HTTPS**: Reverse proxy နှင့် background auto-restart service ကို အလိုအလျောက် configure ပြုလုပ်ပေးခြင်း။
 - **CLI Commands**:
-  - `./deploy.sh -y` — Non-interactive / unattended automated deployment.
-  - `./deploy.sh -s` — Service status နှင့် health check ကြည့်ရှုရန်။
-  - `./deploy.sh -l` — Live journalctl log ကြည့်ရန်။
-  - `./deploy.sh -r` — Service restart ပြုလုပ်ရန်။
+  - `bash deploy.sh -y` — Non-interactive / unattended automated deployment.
+  - `bash deploy.sh -s` — Service status နှင့် health check ကြည့်ရှုရန်။
+  - `bash deploy.sh -l` — Live journalctl log ကြည့်ရန်။
+  - `bash deploy.sh -r` — Service restart ပြုလုပ်ရန်။
 
 ## သုံးနည်း (Windows Desktop GUI)
 

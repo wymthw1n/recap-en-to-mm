@@ -22,11 +22,20 @@ SERVICE_NAME="recap-en-to-mm"
 PYTHON_BIN="$DIR/.venv/bin/python3"
 PIP_BIN="$DIR/.venv/bin/pip"
 
-# Check root privilege
+# Ensure scripts have execution permissions silently
+chmod +x "$DIR/deploy.sh" 2>/dev/null || true
+chmod +x "$DIR/scripts/"*.py 2>/dev/null || true
+
+# Check root privilege and auto-elevate if needed
 check_root() {
   if [ "$(id -u)" -ne 0 ]; then
-    echo -e "${RED}❌ Please run this deploy script with root privileges (sudo ./deploy.sh)${NC}"
-    exit 1
+    if command -v sudo &>/dev/null; then
+      echo -e "${YELLOW}Root privileges required for system packages & services. Auto-elevating with sudo...${NC}"
+      exec sudo bash "$0" "$@"
+    else
+      echo -e "${RED}❌ Please run this deploy script with root privileges (sudo bash deploy.sh)${NC}"
+      exit 1
+    fi
   fi
 }
 
