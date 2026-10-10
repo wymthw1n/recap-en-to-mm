@@ -39,20 +39,48 @@ document.addEventListener("DOMContentLoaded", () => {
   // DOM Elements
   const tabBtns = document.querySelectorAll(".nav-btn");
   const tabPanes = document.querySelectorAll(".tab-pane");
+  const mobileNavSelect = document.getElementById("mobileNavSelect");
+
+  function switchTab(target) {
+    tabBtns.forEach(b => b.classList.toggle("active", b.dataset.tab === target));
+    tabPanes.forEach(p => p.classList.toggle("active", p.id === `tab-${target}`));
+    if (mobileNavSelect && mobileNavSelect.value !== target) {
+      mobileNavSelect.value = target;
+    }
+
+    if (target === "sources") loadSources();
+    if (target === "jobs") loadJobs();
+    if (target === "settings") loadSettings();
+  }
 
   // Tab Switching
   tabBtns.forEach(btn => {
     btn.addEventListener("click", () => {
-      const target = btn.dataset.tab;
-      tabBtns.forEach(b => b.classList.remove("active"));
-      tabPanes.forEach(p => p.classList.remove("active"));
-      btn.classList.add("active");
-      const pane = document.getElementById(`tab-${target}`);
-      if (pane) pane.classList.add("active");
+      switchTab(btn.dataset.tab);
+    });
+  });
 
-      if (target === "sources") loadSources();
-      if (target === "jobs") loadJobs();
-      if (target === "settings") loadSettings();
+  if (mobileNavSelect) {
+    mobileNavSelect.addEventListener("change", () => {
+      switchTab(mobileNavSelect.value);
+    });
+  }
+
+  // Mobile Studio View Switcher
+  const viewTabBtns = document.querySelectorAll(".view-tab-btn");
+  const workspaceLayout = document.querySelector(".workspace-layout");
+
+  function setMobileStudioView(view) {
+    if (workspaceLayout) workspaceLayout.dataset.mobileView = view;
+    viewTabBtns.forEach(b => b.classList.toggle("active", b.dataset.view === view));
+    if (view === "center") {
+      updateOverlayPositions();
+    }
+  }
+
+  viewTabBtns.forEach(btn => {
+    btn.addEventListener("click", () => {
+      setMobileStudioView(btn.dataset.view);
     });
   });
 
@@ -129,8 +157,9 @@ document.addEventListener("DOMContentLoaded", () => {
     selectedDuration.innerText = formatSeconds(src.duration);
     selectedRes.innerText = `${src.width}x${src.height}`;
 
-    // Switch to workspace tab
-    document.querySelector('.nav-btn[data-tab="workspace"]').click();
+    // Switch to workspace tab and center view
+    switchTab("workspace");
+    setMobileStudioView("center");
 
     // Set preview seek slider max
     const slider = document.getElementById("previewSeekSlider");
@@ -609,9 +638,7 @@ document.addEventListener("DOMContentLoaded", () => {
       item.addEventListener("click", (e) => {
         if (e.target.classList.contains("del-blur-btn") || e.target.tagName === "INPUT") return;
         state.activeBlurIndex = parseInt(item.dataset.index);
-        state.activeOverlayTarget = "blur";
-        segBtns.forEach(b => b.classList.toggle("active", b.dataset.target === "blur"));
-        syncPositionControlsToTarget();
+        setActiveOverlayTarget("blur");
         renderBlurBoxesList();
         renderBlurBoxesOnCanvas();
       });
@@ -672,9 +699,7 @@ document.addEventListener("DOMContentLoaded", () => {
         },
         () => {
           state.activeBlurIndex = i;
-          state.activeOverlayTarget = "blur";
-          segBtns.forEach(b => b.classList.toggle("active", b.dataset.target === "blur"));
-          syncPositionControlsToTarget();
+          setActiveOverlayTarget("blur");
           renderBlurBoxesList();
           renderBlurBoxesOnCanvas();
         }
@@ -688,16 +713,15 @@ document.addEventListener("DOMContentLoaded", () => {
     addBlurBtn.addEventListener("click", () => {
       state.overlays.blur_boxes.push({ x: 0.10, y: 0.10, w: 0.25, h: 0.12 });
       state.activeBlurIndex = state.overlays.blur_boxes.length - 1;
-      state.activeOverlayTarget = "blur";
-      segBtns.forEach(b => b.classList.toggle("active", b.dataset.target === "blur"));
-      syncPositionControlsToTarget();
+      setActiveOverlayTarget("blur");
       renderBlurBoxesList();
       renderBlurBoxesOnCanvas();
     });
   }
 
-  // Mobile / Touch Positioning Hub
+  // Positioning Hub
   const segBtns = document.querySelectorAll(".seg-btn");
+  const posTargetSelect = document.getElementById("posTargetSelect");
   const gridBtns = document.querySelectorAll(".grid-btn");
   const tapToPlaceCheck = document.getElementById("tapToPlaceCheck");
   const posXSlider = document.getElementById("posXSlider");
@@ -709,22 +733,38 @@ document.addEventListener("DOMContentLoaded", () => {
   const stepBtns = document.querySelectorAll(".step-btn");
   const sizeStepper = document.getElementById("sizeStepper");
 
-  segBtns.forEach(btn => {
-    btn.addEventListener("click", () => {
-      segBtns.forEach(b => b.classList.remove("active"));
-      btn.classList.add("active");
-      state.activeOverlayTarget = btn.dataset.target;
-      if (state.activeOverlayTarget === "blur" && state.overlays.blur_boxes.length === 0) {
-        state.overlays.blur_boxes.push({ x: 0.10, y: 0.10, w: 0.25, h: 0.12 });
-        state.activeBlurIndex = 0;
-        renderBlurBoxesList();
-        renderBlurBoxesOnCanvas();
-      }
-      syncPositionControlsToTarget();
-      updateOverlayPositions();
+  function setActiveOverlayTarget(target) {
+    state.activeOverlayTarget = target;
+    if (posTargetSelect && posTargetSelect.value !== target) {
+      posTargetSelect.value = target;
+    }
+    if (segBtns) {
+      segBtns.forEach(b => b.classList.toggle("active", b.dataset.target === target));
+    }
+    if (state.activeOverlayTarget === "blur" && state.overlays.blur_boxes.length === 0) {
+      state.overlays.blur_boxes.push({ x: 0.10, y: 0.10, w: 0.25, h: 0.12 });
+      state.activeBlurIndex = 0;
+      renderBlurBoxesList();
       renderBlurBoxesOnCanvas();
+    }
+    syncPositionControlsToTarget();
+    updateOverlayPositions();
+    renderBlurBoxesOnCanvas();
+  }
+
+  if (posTargetSelect) {
+    posTargetSelect.addEventListener("change", () => {
+      setActiveOverlayTarget(posTargetSelect.value);
     });
-  });
+  }
+
+  if (segBtns) {
+    segBtns.forEach(btn => {
+      btn.addEventListener("click", () => {
+        setActiveOverlayTarget(btn.dataset.target);
+      });
+    });
+  }
 
   tapToPlaceCheck.addEventListener("change", () => {
     state.tapToPlaceEnabled = tapToPlaceCheck.checked;
@@ -1041,11 +1081,7 @@ document.addEventListener("DOMContentLoaded", () => {
     overlayTitle,
     () => state.overlays.title_pos,
     ([nx, ny]) => { state.overlays.title_pos = [nx, ny]; },
-    () => {
-      state.activeOverlayTarget = "title";
-      segBtns.forEach(b => b.classList.toggle("active", b.dataset.target === "title"));
-      syncPositionControlsToTarget();
-    }
+    () => { setActiveOverlayTarget("title"); }
   );
 
   setupCanvasDraggable(
@@ -1054,33 +1090,21 @@ document.addEventListener("DOMContentLoaded", () => {
     ([nx, ny]) => {
       state.overlays.subtitle_pos = [0.50, Math.max(0.08, Math.min(0.92, ny))];
     },
-    () => {
-      state.activeOverlayTarget = "subtitle";
-      segBtns.forEach(b => b.classList.toggle("active", b.dataset.target === "subtitle"));
-      syncPositionControlsToTarget();
-    }
+    () => { setActiveOverlayTarget("subtitle"); }
   );
 
   setupCanvasDraggable(
     overlayExtra,
     () => state.overlays.extra_text_pos,
     ([nx, ny]) => { state.overlays.extra_text_pos = [nx, ny]; },
-    () => {
-      state.activeOverlayTarget = "extra";
-      segBtns.forEach(b => b.classList.toggle("active", b.dataset.target === "extra"));
-      syncPositionControlsToTarget();
-    }
+    () => { setActiveOverlayTarget("extra"); }
   );
 
   setupCanvasDraggable(
     overlayLogo,
     () => state.overlays.logo_pos,
     ([nx, ny]) => { state.overlays.logo_pos = [nx, ny]; },
-    () => {
-      state.activeOverlayTarget = "logo";
-      segBtns.forEach(b => b.classList.toggle("active", b.dataset.target === "logo"));
-      syncPositionControlsToTarget();
-    }
+    () => { setActiveOverlayTarget("logo"); }
   );
 
   function updateOverlayPositions() {

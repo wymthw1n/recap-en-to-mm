@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Recap English → Myanmar</title>
+  <title>Recap Production — English → Myanmar</title>
   <link rel="stylesheet" href="/static/css/app.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -17,8 +17,18 @@
         <div class="logo-badge">MM</div>
         <div class="brand-text">
           <h1>Recap Production</h1>
-          <span class="sub">English → Myanmar · Smart Sync</span>
+          <span class="sub">English → Myanmar</span>
         </div>
+      </div>
+
+      <!-- Mobile Dropdown Navigation -->
+      <div class="mobile-nav-wrap">
+        <select id="mobileNavSelect" class="mobile-nav-select" aria-label="Navigation">
+          <option value="workspace" selected>⚡ Workspace</option>
+          <option value="sources">📁 Sources</option>
+          <option value="jobs">🎬 Jobs</option>
+          <option value="settings">⚙️ Settings</option>
+        </select>
       </div>
 
       <nav class="tabs-nav">
@@ -33,7 +43,7 @@
         </button>
         <button class="nav-btn" data-tab="jobs">
           <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-          <span>Generated Jobs</span>
+          <span>Jobs</span>
           <span class="badge" id="jobCountBadge">0</span>
         </button>
         <button class="nav-btn" data-tab="settings">
@@ -48,7 +58,14 @@
       
       <!-- ================= 1. WORKSPACE TAB ================= -->
       <section id="tab-workspace" class="tab-pane active">
-        <div class="workspace-layout">
+        <!-- Mobile Studio View Tabs -->
+        <div class="mobile-view-tabs">
+          <button type="button" class="view-tab-btn active" data-view="center">Preview & Align</button>
+          <button type="button" class="view-tab-btn" data-view="left">Video & Audio</button>
+          <button type="button" class="view-tab-btn" data-view="right">Subtitles & Framing</button>
+        </div>
+
+        <div class="workspace-layout" data-mobile-view="center">
           
           <!-- Left Column: Source Selection & Settings -->
           <div class="pane left-pane">
@@ -62,9 +79,9 @@
                 
                 <!-- URL Download Form -->
                 <div class="input-group mb-3">
-                  <label>Download Link (YouTube, TikTok, FB, etc.)</label>
+                  <label>Video URL</label>
                   <div class="row-flex">
-                    <input type="text" id="downloadUrlInput" placeholder="Paste video link here..." autocomplete="off">
+                    <input type="text" id="downloadUrlInput" placeholder="Paste YouTube, TikTok or video URL..." autocomplete="off">
                     <button id="downloadBtn" class="btn btn-primary">
                       <span>Download</span>
                     </button>
@@ -77,7 +94,7 @@
 
                 <!-- Or Upload File -->
                 <div class="input-group mb-3">
-                  <label>Or Upload Video File</label>
+                  <label>Upload Video</label>
                   <div class="drop-zone" id="videoDropZone">
                     <input type="file" id="videoFileInput" accept="video/mp4,video/x-matroska,video/quicktime,video/webm">
                     <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
@@ -105,29 +122,28 @@
             <!-- Voice & Translation Settings -->
             <div class="card">
               <div class="card-header">
-                <h3>Translation & Voice</h3>
+                <h3>Voice & Translation</h3>
               </div>
               <div class="card-body">
                 <div class="form-row">
-                  <label>Edge TTS Voice</label>
+                  <label>Voice</label>
                   <select id="edgeVoiceSelect">
-                    <option value="my-MM-ThihaNeural">Thiha (Male - Natural)</option>
-                    <option value="my-MM-NilarNeural">Nilar (Female - Natural)</option>
+                    <option value="my-MM-ThihaNeural">Thiha (Male)</option>
+                    <option value="my-MM-NilarNeural">Nilar (Female)</option>
                   </select>
                 </div>
 
                 <div class="form-row">
                   <div class="label-with-val">
-                    <label>Voice Speed</label>
+                    <label>Speed</label>
                     <span id="voiceSpeedVal">+0%</span>
                   </div>
                   <input type="range" id="voiceSpeedSlider" min="-50" max="100" value="0" step="5">
-                  <div class="range-labels"><span>-50% slower</span><span>Normal</span><span>+100% faster</span></div>
                 </div>
 
                 <div class="form-row">
                   <div class="label-with-val">
-                    <label>Voice Volume</label>
+                    <label>Volume</label>
                     <span id="voiceVolVal">100%</span>
                   </div>
                   <input type="range" id="voiceVolSlider" min="50" max="300" value="100" step="10">
@@ -136,7 +152,7 @@
                 <div class="form-row checkbox-row">
                   <label class="switch-label">
                     <input type="checkbox" id="shortPausesCheck" checked>
-                    <span>Short pauses (~0.25s silence between lines)</span>
+                    <span>Natural pauses between lines</span>
                   </label>
                 </div>
               </div>
@@ -145,21 +161,21 @@
             <!-- Original Background Sound Card -->
             <div class="card">
               <div class="card-header space-between">
-                <h3>Original Background Sound</h3>
+                <h3>Background Sound</h3>
                 <label class="switch-label small">
                   <input type="checkbox" id="enableOrigBgCheck">
                   <span>Enable</span>
                 </label>
               </div>
               <div class="card-body">
-                <p class="muted small mb-2">Isolates background music & SFX with AI, removing English human voices.</p>
+                <p class="muted small mb-2">Removes human vocals, keeps music and sound effects.</p>
                 <div class="form-row" id="origBgVolRow">
                   <div class="label-with-val">
-                    <label>Background Sound Volume</label>
+                    <label>Volume</label>
                     <span id="origBgVolVal">25%</span>
                   </div>
                   <input type="range" id="origBgVolSlider" min="5" max="100" value="25" step="5">
-                  <span class="muted small mt-1" style="display:block;">BGM & sound effects duck smoothly under narration</span>
+                  <span class="muted small mt-1" style="display:block;">Ducks smoothly under Burmese narration</span>
                 </div>
               </div>
             </div>
@@ -170,10 +186,10 @@
           <div class="pane center-pane">
             <div class="card preview-card">
               <div class="card-header space-between">
-                <h3>Visual Preview</h3>
+                <h3>Preview</h3>
                 <div class="header-tools">
                   <span id="previewTimeLabel" class="muted small font-mono">00:00 / 00:00</span>
-                  <button id="refreshFrameBtn" class="btn btn-sm btn-secondary">Refresh Frame</button>
+                  <button id="refreshFrameBtn" class="btn btn-sm btn-secondary">Refresh</button>
                 </div>
               </div>
 
@@ -212,25 +228,26 @@
                 <!-- Touch & Mobile Positioning Control Hub -->
                 <div class="mobile-positioning-panel" id="mobilePositioning">
                   <div class="pos-panel-header">
-                    <h4>Position & Alignment Controls</h4>
-                    <span class="muted small">Touch-Friendly Preset Grid & Sliders</span>
+                    <h4>Position & Alignment</h4>
                   </div>
 
-                  <!-- Select active overlay to adjust -->
+                  <!-- Select active overlay to adjust via clean dropdown -->
                   <div class="pos-target-selector">
-                    <label>Select Target:</label>
-                    <div class="segmented-control">
-                      <button class="seg-btn active" data-target="title">Title</button>
-                      <button class="seg-btn" data-target="subtitle">Subtitle</button>
-                      <button class="seg-btn" data-target="logo">Logo</button>
-                      <button class="seg-btn" data-target="extra">Extra Text</button>
-                      <button class="seg-btn" data-target="blur">Blur Watermark</button>
+                    <label for="posTargetSelect">Target Layer</label>
+                    <div class="target-select-wrap">
+                      <select id="posTargetSelect" class="target-dropdown">
+                        <option value="subtitle" selected>Subtitle</option>
+                        <option value="title">Title</option>
+                        <option value="logo">Logo</option>
+                        <option value="extra">Extra Text</option>
+                        <option value="blur">Blur Watermark</option>
+                      </select>
                     </div>
                   </div>
 
                   <!-- 9-Grid Alignment Presets -->
                   <div class="preset-grid-wrapper">
-                    <label class="small muted">Quick 1-Tap Alignment:</label>
+                    <label class="small muted">Presets:</label>
                     <div class="preset-grid">
                       <button class="grid-btn" data-align="top-left">Top-L</button>
                       <button class="grid-btn" data-align="top-center">Top-C</button>
@@ -248,11 +265,11 @@
                   <div class="tap-place-row">
                     <label class="switch-label">
                       <input type="checkbox" id="tapToPlaceCheck">
-                      <span>Enable Tap-to-Place on Preview Image</span>
+                      <span>Tap canvas to place</span>
                     </label>
                   </div>
 
-                  <!-- Numeric Fine-Tuning Sliders -->
+                  <!-- Fine-Tuning Sliders -->
                   <div class="fine-tuning-sliders">
                     <div class="slider-stepper">
                       <label>X Position (<span id="posXVal">50%</span>)</label>
@@ -273,7 +290,7 @@
                     </div>
 
                     <div class="slider-stepper" id="sizeStepper">
-                      <label>Size / Scale (<span id="posSizeVal">54px</span>)</label>
+                      <label>Size (<span id="posSizeVal">54px</span>)</label>
                       <div class="stepper-row">
                         <button class="step-btn" data-adjust="size" data-delta="-2">-</button>
                         <input type="range" id="posSizeSlider" min="16" max="96" value="54">
@@ -289,20 +306,20 @@
 
           </div>
 
-          <!-- Right Column: Production Tools (Crop, Ratio, Overlays) -->
+          <!-- Right Column: Framing, Overlays & Subtitles -->
           <div class="pane right-pane">
             <div class="card">
               <div class="card-header">
-                <h3>Video Framing</h3>
+                <h3>Framing</h3>
               </div>
               <div class="card-body">
                 <div class="form-row">
                   <label>Aspect Ratio</label>
                   <select id="ratioSelect">
-                    <option value="16:9" selected>16:9 (Landscape - 1920x1080)</option>
-                    <option value="9:16">9:16 (TikTok / Reels - 1080x1920)</option>
-                    <option value="1:1">1:1 (Square - 1080x1080)</option>
-                    <option value="Original">Original (Source aspect)</option>
+                    <option value="16:9" selected>16:9 (Landscape)</option>
+                    <option value="9:16">9:16 (Vertical)</option>
+                    <option value="1:1">1:1 (Square)</option>
+                    <option value="Original">Original</option>
                   </select>
                 </div>
 
@@ -310,7 +327,7 @@
                   <label>Fill Mode</label>
                   <select id="fillSelect">
                     <option value="blur" selected>Blur background</option>
-                    <option value="black">Black bars (Letterbox)</option>
+                    <option value="black">Black bars</option>
                     <option value="crop">Crop to fill</option>
                   </select>
                 </div>
@@ -326,7 +343,7 @@
                 <div class="form-row checkbox-row">
                   <label class="switch-label">
                     <input type="checkbox" id="flipCheck">
-                    <span>Flip (Mirror left ↔ right)</span>
+                    <span>Mirror video</span>
                   </label>
                 </div>
               </div>
@@ -335,7 +352,7 @@
             <!-- Overlays Card -->
             <div class="card">
               <div class="card-header">
-                <h3>Overlays & Watermarks</h3>
+                <h3>Overlays</h3>
               </div>
               <div class="card-body">
                 
@@ -347,14 +364,14 @@
 
                 <!-- Extra Text -->
                 <div class="overlay-section">
-                  <h4>Extra Text / Sub-Label</h4>
+                  <h4>Extra Text</h4>
                   <input type="text" id="extraTextInput" class="mm-text" placeholder="စာတို ရေးရန်...">
                 </div>
 
                 <!-- Logo Image -->
                 <div class="overlay-section">
                   <div class="space-between mb-2">
-                    <h4>Logo Watermark</h4>
+                    <h4>Logo</h4>
                     <label class="switch-label small">
                       <input type="checkbox" id="logoEnabledCheck">
                       <span>Enable</span>
@@ -365,7 +382,7 @@
                   </div>
                   <div class="form-row">
                     <div class="label-with-val">
-                      <label>Logo Size</label>
+                      <label>Size</label>
                       <span id="logoSizeVal">16%</span>
                     </div>
                     <input type="range" id="logoSizeSlider" min="6" max="35" value="16" step="1">
@@ -375,7 +392,7 @@
                 <!-- Blur Watermark Boxes -->
                 <div class="overlay-section">
                   <div class="space-between mb-2">
-                    <h4>Blur Box (Hide Watermarks)</h4>
+                    <h4>Blur Boxes</h4>
                     <button id="addBlurBtn" class="btn btn-sm btn-secondary">+ Add Box</button>
                   </div>
                   <div id="blurBoxesList" class="blur-boxes-list">
@@ -389,19 +406,17 @@
             <!-- Burmese Subtitles Card -->
             <div class="card">
               <div class="card-header space-between">
-                <h3>Burmese Subtitles</h3>
+                <h3>Subtitles</h3>
                 <label class="switch-label small">
                   <input type="checkbox" id="burnSubtitlesCheck" checked>
                   <span>Burn on Video</span>
                 </label>
               </div>
               <div class="card-body">
-                <p class="muted small mb-2">Rendered above blur boxes · Scaled to video resolution · Center-aligned.</p>
-                
-                <!-- Resolution-Proportional Font Size with Steppers -->
+                <!-- Font Size with Steppers -->
                 <div class="form-row">
                   <div class="label-with-val">
-                    <label>Font Size (% of Video Height)</label>
+                    <label>Font Size</label>
                     <span id="subSizeVal" class="badge-value">3.6%</span>
                   </div>
                   <div class="stepper-row">
@@ -409,7 +424,7 @@
                     <input type="range" id="subSizeSlider" min="2.0" max="6.5" value="3.6" step="0.2">
                     <button type="button" class="btn-stepper" id="subSizePlusBtn" title="Increase font size">+</button>
                   </div>
-                  <!-- Quick 1-Tap Size Presets -->
+                  <!-- Quick Size Presets -->
                   <div class="size-preset-pills mt-2">
                     <button type="button" class="preset-pill-btn" data-subsize="2.8">Small (2.8%)</button>
                     <button type="button" class="preset-pill-btn active" data-subsize="3.6">Medium (3.6%)</button>
@@ -421,7 +436,7 @@
                 <!-- Subtitle Box Width with Steppers -->
                 <div class="form-row">
                   <div class="label-with-val">
-                    <label>Box Max Width</label>
+                    <label>Box Width</label>
                     <span id="subWidthVal" class="badge-value">85%</span>
                   </div>
                   <div class="stepper-row">
@@ -436,10 +451,10 @@
                   </div>
                 </div>
 
-                <!-- Touch-friendly Position Adjustment -->
+                <!-- Position Adjustment -->
                 <div class="form-row">
                   <div class="label-with-val">
-                    <label>Vertical Position (Y)</label>
+                    <label>Position (Y)</label>
                     <span id="subYVal" class="badge-value">86%</span>
                   </div>
                   <div class="stepper-row">
@@ -447,7 +462,7 @@
                     <input type="range" id="subYSlider" min="10" max="95" value="86" step="2">
                     <button type="button" class="btn-stepper" id="subYPlusBtn" title="Move Down">+</button>
                   </div>
-                  <!-- Quick 1-Tap Position Presets -->
+                  <!-- Quick Position Presets -->
                   <div class="size-preset-pills mt-2">
                     <button type="button" class="pos-preset-btn" data-suby="12">Top (12%)</button>
                     <button type="button" class="pos-preset-btn" data-suby="50">Middle (50%)</button>
@@ -458,7 +473,7 @@
 
                 <!-- Subtitle Color -->
                 <div class="form-row">
-                  <label>Subtitle Color</label>
+                  <label>Color</label>
                   <div class="row-flex gap-2" style="display:flex; align-items:center; gap:8px;">
                     <button type="button" class="btn btn-sm sub-color-btn active" data-color="#FFDE00" style="background:#FFDE00; color:#000; font-weight:700; padding:3px 10px; border-radius:4px;">Yellow</button>
                     <button type="button" class="btn btn-sm sub-color-btn" data-color="#FFFFFF" style="background:#FFFFFF; color:#000; font-weight:700; padding:3px 10px; border-radius:4px;">White</button>
@@ -469,10 +484,10 @@
 
                 <!-- Subtitle Style -->
                 <div class="form-row">
-                  <label>Subtitle Style</label>
+                  <label>Style</label>
                   <select id="subStyleSelect">
-                    <option value="outline" selected>Outline + Drop Shadow</option>
-                    <option value="box">Semi-Transparent Bounding Box</option>
+                    <option value="outline" selected>Outline & Shadow</option>
+                    <option value="box">Bounding Box</option>
                   </select>
                 </div>
               </div>
@@ -488,11 +503,11 @@
                 <div class="run-actions">
                   <button id="startJobBtn" class="btn btn-action btn-success">
                     <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-                    <span>START / RESUME</span>
+                    <span>Start</span>
                   </button>
                   <button id="stopJobBtn" class="btn btn-action btn-danger" disabled>
                     <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><rect x="6" y="6" width="12" height="12"/></svg>
-                    <span>STOP SAFELY</span>
+                    <span>Stop</span>
                   </button>
                 </div>
 
@@ -500,7 +515,7 @@
                 <div class="run-status-col">
                   <div class="run-status-header">
                     <div class="status-badge" id="jobStatusBadge">READY</div>
-                    <span id="jobStageText" class="stage-text">Select video and configure settings to start</span>
+                    <span id="jobStageText" class="stage-text">Ready to start</span>
                     <span id="jobProgressPercent" class="progress-pct font-mono">0%</span>
                   </div>
                   <div class="progress-bar-bg">
@@ -517,7 +532,7 @@
                   <button type="button" class="btn btn-secondary btn-drawer-toggle" id="drawerToggleBtn">
                     <span class="live-dot" id="liveDot"></span>
                     <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg>
-                    <span id="drawerToggleLabel">Live Logs</span>
+                    <span id="drawerToggleLabel">Logs</span>
                     <span class="badge" id="logLinesCount">0 lines</span>
                     <svg id="drawerArrow" class="drawer-arrow" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
                   </button>
@@ -530,17 +545,17 @@
                 <div class="logs-drawer-header">
                   <div class="logs-header-left">
                     <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg>
-                    <strong>Live Process Output Console</strong>
+                    <strong>Process Logs</strong>
                   </div>
                   <div class="logs-header-right">
                     <button type="button" class="btn btn-sm btn-secondary" id="copyLogsBtn">
                       <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-                      <span>Copy Logs</span>
+                      <span>Copy</span>
                     </button>
                     <button type="button" class="btn btn-sm btn-secondary" id="clearLogsBtn">Clear</button>
                   </div>
                 </div>
-                <div class="log-console font-mono" id="liveLogConsole">[System ready. Waiting for task...]</div>
+                <div class="log-console font-mono" id="liveLogConsole">[Ready]</div>
               </div>
 
             </div>
@@ -555,8 +570,8 @@
         <div class="history-container">
           <div class="history-header">
             <div>
-              <h2>Source Media Library</h2>
-              <p class="muted">All uploaded and downloaded video files</p>
+              <h2>Source Videos</h2>
+              <p class="muted">Saved video files</p>
             </div>
             <button id="refreshSourcesBtn" class="btn btn-secondary">Refresh</button>
           </div>
@@ -573,8 +588,8 @@
         <div class="history-container">
           <div class="history-header">
             <div>
-              <h2>Generated Recap Jobs</h2>
-              <p class="muted">Processed Smart Sync videos, transcripts, and checkpoints</p>
+              <h2>Job History</h2>
+              <p class="muted">Completed jobs and exported videos</p>
             </div>
             <button id="refreshJobsBtn" class="btn btn-secondary">Refresh</button>
           </div>
@@ -590,25 +605,25 @@
       <section id="tab-settings" class="tab-pane">
         <div class="settings-container">
           <div class="settings-card">
-            <h2>Gemini API Configuration</h2>
-            <p class="muted">Manage primary API key, fallback keys pool, and optional proxy</p>
+            <h2>Gemini API</h2>
+            <p class="muted">API keys and model configuration</p>
 
             <form id="settingsForm">
               <div class="form-group mb-4">
-                <label>Primary Gemini API Key</label>
+                <label>API Key</label>
                 <div class="row-flex">
                   <input type="password" id="geminiApiKeyInput" placeholder="AIzaSy..." autocomplete="off">
                   <button type="button" id="toggleKeyVisBtn" class="btn btn-secondary">Show</button>
-                  <button type="button" id="testKeyBtn" class="btn btn-primary">Test Key</button>
+                  <button type="button" id="testKeyBtn" class="btn btn-primary">Test</button>
                 </div>
                 <div id="keyTestResult" class="test-result-box hidden"></div>
-                <span class="muted small">Key is stored in server .env. Get a key from Google AI Studio.</span>
+                <span class="muted small">Stored securely in server .env.</span>
               </div>
 
               <!-- Additional Fallback Keys -->
               <div class="form-group mb-4">
                 <div class="space-between mb-2">
-                  <label>Fallback Project Keys (Rotates on 429 quota)</label>
+                  <label>Fallback Keys (rotates on 429 quota)</label>
                   <button type="button" id="addFallbackKeyBtn" class="btn btn-sm btn-secondary">+ Add Key</button>
                 </div>
                 <div id="fallbackKeysContainer" class="fallback-keys-list">
@@ -617,16 +632,16 @@
               </div>
 
               <div class="form-group mb-4">
-                <label>Gemini Proxy (Optional)</label>
-                <input type="text" id="geminiProxyInput" placeholder="e.g. http://127.0.0.1:10808 (or empty)">
-                <span class="muted small">Useful if Google API requires a local proxy or VPN tunnel.</span>
+                <label>Proxy (Optional)</label>
+                <input type="text" id="geminiProxyInput" placeholder="e.g. http://127.0.0.1:10808">
+                <span class="muted small">Optional HTTP or SOCKS proxy tunnel.</span>
               </div>
 
               <div class="form-group mb-4">
-                <label>Translation Text Model</label>
+                <label>Model</label>
                 <select id="geminiModelSelect">
-                  <option value="gemini-3.5-flash">gemini-3.5-flash (Fast & Accurate)</option>
-                  <option value="gemini-3.5-flash-lite">gemini-3.5-flash-lite (Very Fast)</option>
+                  <option value="gemini-3.5-flash">gemini-3.5-flash (Recommended)</option>
+                  <option value="gemini-3.5-flash-lite">gemini-3.5-flash-lite (Fast)</option>
                   <option value="gemini-3.6-flash">gemini-3.6-flash</option>
                   <option value="gemini-3.7-flash">gemini-3.7-flash</option>
                   <option value="gemini-2.5-flash">gemini-2.5-flash</option>
@@ -638,7 +653,7 @@
           </div>
 
           <div class="settings-card mt-4">
-            <h2>System & Hardware Status</h2>
+            <h2>System Status</h2>
             <div id="sysDiagnostic" class="sys-diagnostic-box">
               <div class="diag-row"><span>Operating System</span><span class="font-mono">Ubuntu Linux</span></div>
               <div class="diag-row"><span>Audio/Video Engine</span><span class="font-mono">FFmpeg (Local)</span></div>

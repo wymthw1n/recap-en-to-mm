@@ -148,6 +148,22 @@ input[type="range"]::-webkit-slider-thumb {
   top: 0;
   z-index: 100;
 }
+.mobile-nav-wrap {
+  display: none;
+}
+.mobile-nav-select {
+  background: #1c222e;
+  color: #fff;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 6px 12px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+.mobile-view-tabs {
+  display: none;
+}
 .brand {
   display: flex;
   align-items: center;
@@ -161,7 +177,7 @@ input[type="range"]::-webkit-slider-thumb {
   padding: 3px 7px;
   border-radius: 4px;
 }
-.brand-text h1 { margin-bottom: 0; line-height: 1.1; }
+.brand-text h1 { margin-bottom: 0; line-height: 1.1; font-size: 1.15rem; }
 .brand-text .sub { font-size: 0.75rem; color: var(--muted); }
 
 .tabs-nav {
@@ -595,6 +611,37 @@ input[type="range"]::-webkit-slider-thumb {
   margin-bottom: 8px;
 }
 .pos-panel-header h4 { margin-bottom: 0; }
+
+.pos-target-selector {
+  margin-bottom: 12px;
+}
+.pos-target-selector label {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--muted);
+  display: block;
+  margin-bottom: 5px;
+}
+.target-select-wrap {
+  position: relative;
+  width: 100%;
+}
+.target-dropdown {
+  width: 100%;
+  background: #141822;
+  border: 1px solid var(--border);
+  color: #fff;
+  font-weight: 600;
+  font-size: 0.88rem;
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  outline: none;
+  transition: border-color 0.15s ease;
+}
+.target-dropdown:focus {
+  border-color: var(--accent);
+}
 
 .segmented-control {
   display: flex;
@@ -1140,30 +1187,100 @@ input[type="range"]::-webkit-slider-thumb {
 /* Mobile (< 768px) */
 @media (max-width: 768px) {
   .top-nav {
-    flex-direction: column;
-    gap: 8px;
-    padding: 8px;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 12px;
   }
   .tabs-nav {
-    width: 100%;
-    overflow-x: auto;
-    padding-bottom: 4px;
+    display: none !important;
   }
-  .nav-btn {
+  .mobile-nav-wrap {
+    display: block !important;
+  }
+  .mobile-nav-select {
+    background: #181d26;
+    color: #fff;
+    border: 1px solid var(--border);
+    border-radius: 6px;
     padding: 6px 10px;
-    font-size: 0.8rem;
+    font-size: 0.84rem;
+    font-weight: 600;
+    cursor: pointer;
+    outline: none;
   }
+  .mobile-nav-select:focus {
+    border-color: var(--accent);
+  }
+
+  /* Mobile Studio View Tabs */
+  .mobile-view-tabs {
+    display: flex !important;
+    gap: 4px;
+    background: #141822;
+    padding: 4px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    margin-bottom: 10px;
+  }
+  .view-tab-btn {
+    flex: 1;
+    background: transparent;
+    border: none;
+    color: var(--muted);
+    padding: 8px 4px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    text-align: center;
+    white-space: nowrap;
+  }
+  .view-tab-btn.active {
+    background: var(--accent);
+    color: #fff;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+  }
+
+  /* Pane visibility based on active mobile studio view */
   .workspace-layout {
     grid-template-columns: 1fr;
     gap: 10px;
   }
-  .workspace-footer {
-    grid-column: 1;
+  .workspace-layout[data-mobile-view="center"] .left-pane,
+  .workspace-layout[data-mobile-view="center"] .right-pane {
+    display: none !important;
   }
+  .workspace-layout[data-mobile-view="center"] .center-pane {
+    display: block !important;
+  }
+
+  .workspace-layout[data-mobile-view="left"] .center-pane,
+  .workspace-layout[data-mobile-view="left"] .right-pane {
+    display: none !important;
+  }
+  .workspace-layout[data-mobile-view="left"] .left-pane {
+    display: block !important;
+  }
+
+  .workspace-layout[data-mobile-view="right"] .left-pane,
+  .workspace-layout[data-mobile-view="right"] .center-pane {
+    display: none !important;
+  }
+  .workspace-layout[data-mobile-view="right"] .right-pane {
+    display: block !important;
+  }
+
+  .workspace-layout .workspace-footer {
+    grid-column: 1 / -1;
+    display: block !important;
+  }
+
   .run-bar {
     grid-template-columns: 1fr;
-    gap: 12px;
-    padding: 12px;
+    gap: 10px;
+    padding: 10px;
   }
   .run-actions {
     display: grid;
@@ -1176,7 +1293,7 @@ input[type="range"]::-webkit-slider-thumb {
     min-width: 0;
     padding: 0 8px;
     font-size: 0.82rem;
-    height: 42px;
+    height: 40px;
   }
   .run-status-col {
     width: 100%;
@@ -1193,7 +1310,16 @@ input[type="range"]::-webkit-slider-thumb {
     grid-template-columns: repeat(3, 1fr);
   }
   .step-btn {
-    width: 38px;
-    height: 38px;
+    width: 36px;
+    height: 36px;
+  }
+  .stepper-row {
+    gap: 6px;
+  }
+  .preview-card .card-body {
+    padding: 8px;
+  }
+  .mobile-positioning-panel {
+    padding: 10px;
   }
 }
