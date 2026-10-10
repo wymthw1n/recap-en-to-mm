@@ -78,6 +78,7 @@ document.addEventListener("DOMContentLoaded", () => {
     viewTabBtns.forEach(b => b.classList.toggle("active", b.dataset.view === view));
     window.scrollTo({ top: 0, behavior: "smooth" });
     if (view === "center") {
+      updatePreviewAspectRatio();
       updateOverlayPositions();
     }
   }
@@ -85,6 +86,14 @@ document.addEventListener("DOMContentLoaded", () => {
   viewTabBtns.forEach(btn => {
     btn.addEventListener("click", () => {
       setMobileStudioView(btn.dataset.view);
+    });
+  });
+
+  // Step progression buttons ("Next: Preview & Subtitles ->", "Next: Voice & Produce ->")
+  document.querySelectorAll(".step-next-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const next = btn.dataset.next;
+      if (next) setMobileStudioView(next);
     });
   });
 
@@ -101,6 +110,16 @@ document.addEventListener("DOMContentLoaded", () => {
   const selectedDuration = document.getElementById("selectedDuration");
   const selectedRes = document.getElementById("selectedRes");
   const sourcesGrid = document.getElementById("sourcesGrid");
+  const quickSourceSelect = document.getElementById("quickSourceSelect");
+
+  if (quickSourceSelect) {
+    quickSourceSelect.addEventListener("change", () => {
+      const id = quickSourceSelect.value;
+      if (!id) return;
+      const found = state.sources.find(s => s.id === id);
+      if (found) selectSource(found);
+    });
+  }
 
   async function loadSources() {
     try {
@@ -114,6 +133,11 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function renderSourcesGrid() {
+    if (quickSourceSelect) {
+      quickSourceSelect.innerHTML = `<option value="">-- Choose from library (${state.sources.length}) --</option>` +
+        state.sources.map(s => `<option value="${s.id}" ${state.selectedSource && state.selectedSource.id === s.id ? 'selected' : ''}>${escapeHtml(s.name)} (${formatSeconds(s.duration)})</option>`).join("");
+    }
+
     if (!sourcesGrid) return;
     if (state.sources.length === 0) {
       sourcesGrid.innerHTML = `<div class="card p-4 muted text-center" style="grid-column: 1/-1;">No source videos in library yet. Download via link or upload one!</div>`;
@@ -161,7 +185,11 @@ document.addEventListener("DOMContentLoaded", () => {
     selectedDuration.innerText = formatSeconds(src.duration);
     selectedRes.innerText = `${src.width}x${src.height}`;
 
-    // Switch to workspace tab and center view
+    if (quickSourceSelect && quickSourceSelect.value !== src.id) {
+      quickSourceSelect.value = src.id;
+    }
+
+    // Switch to workspace tab and center view (Step 2: Preview)
     switchTab("workspace");
     setMobileStudioView("center");
 
@@ -279,26 +307,27 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function updatePreviewAspectRatio() {
     if (!previewContainer) return;
+    const isMobile = window.innerWidth <= 768;
     const ratio = ratioSelect.value;
     if (ratio === "9:16") {
       previewContainer.style.aspectRatio = "9 / 16";
-      previewContainer.style.maxWidth = "310px";
-      previewContainer.style.maxHeight = "540px";
+      previewContainer.style.maxWidth = isMobile ? "100%" : "310px";
+      previewContainer.style.maxHeight = isMobile ? "480px" : "540px";
     } else if (ratio === "1:1") {
       previewContainer.style.aspectRatio = "1 / 1";
-      previewContainer.style.maxWidth = "460px";
-      previewContainer.style.maxHeight = "460px";
+      previewContainer.style.maxWidth = isMobile ? "100%" : "460px";
+      previewContainer.style.maxHeight = isMobile ? "100vw" : "460px";
     } else if (ratio === "Original" && state.selectedSource && state.selectedSource.width && state.selectedSource.height) {
       const sw = state.selectedSource.width;
       const sh = state.selectedSource.height;
       previewContainer.style.aspectRatio = `${sw} / ${sh}`;
-      previewContainer.style.maxWidth = sw >= sh ? "640px" : "320px";
-      previewContainer.style.maxHeight = sw >= sh ? "360px" : "540px";
+      previewContainer.style.maxWidth = isMobile ? "100%" : (sw >= sh ? "640px" : "320px");
+      previewContainer.style.maxHeight = isMobile ? "none" : (sw >= sh ? "360px" : "540px");
     } else {
       // 16:9
       previewContainer.style.aspectRatio = "16 / 9";
-      previewContainer.style.maxWidth = "640px";
-      previewContainer.style.maxHeight = "360px";
+      previewContainer.style.maxWidth = isMobile ? "100%" : "640px";
+      previewContainer.style.maxHeight = isMobile ? "none" : "360px";
     }
   }
 
@@ -390,10 +419,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const val = parseInt(logoSizeSlider.value);
     state.overlays.logo_width_frac = val / 100.0;
     logoSizeVal.innerText = `${val}%`;
-    if (state.activeOverlayTarget === "logo") {
-      posSizeSlider.value = val;
-      posSizeVal.innerText = `${val}%`;
-    }
     updateOverlayPositions();
   });
 
@@ -423,10 +448,6 @@ document.addEventListener("DOMContentLoaded", () => {
     state.overlays.subtitle_size = clamped;
     if (subSizeSlider) subSizeSlider.value = clamped;
     if (subSizeVal) subSizeVal.innerText = `${clamped.toFixed(1)}%`;
-    if (state.activeOverlayTarget === "subtitle") {
-      posSizeSlider.value = clamped;
-      posSizeVal.innerText = `${clamped.toFixed(1)}%`;
-    }
     if (subSizePresetBtns) {
       subSizePresetBtns.forEach(b => {
         b.classList.toggle("active", Math.abs(parseFloat(b.dataset.subsize) - clamped) < 0.1);
@@ -454,12 +475,6 @@ document.addEventListener("DOMContentLoaded", () => {
     state.overlays.subtitle_pos[0] = 0.50;
     if (subYSlider) subYSlider.value = clamped;
     if (subYVal) subYVal.innerText = `${clamped}%`;
-    if (state.activeOverlayTarget === "subtitle") {
-      posYSlider.value = clamped;
-      posYVal.innerText = `${clamped}%`;
-      posXSlider.value = 50;
-      posXVal.innerText = "50%";
-    }
     if (subYPresetBtns) {
       subYPresetBtns.forEach(b => {
         b.classList.toggle("active", parseInt(b.dataset.suby) === clamped);
@@ -552,10 +567,6 @@ document.addEventListener("DOMContentLoaded", () => {
   if (subCenterHBtn) {
     subCenterHBtn.addEventListener("click", () => {
       state.overlays.subtitle_pos[0] = 0.50;
-      if (state.activeOverlayTarget === "subtitle") {
-        posXSlider.value = 50;
-        posXVal.innerText = "50%";
-      }
       updateOverlayPositions();
     });
   }
@@ -603,35 +614,197 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
+  // ---------------- Watermark Blur Box Controls ----------------
+  const blurBoxControls = document.getElementById("blurBoxControls");
+  const blurWSlider = document.getElementById("blurWSlider");
+  const blurWVal = document.getElementById("blurWVal");
+  const blurWMinusBtn = document.getElementById("blurWMinusBtn");
+  const blurWPlusBtn = document.getElementById("blurWPlusBtn");
+
+  const blurHSlider = document.getElementById("blurHSlider");
+  const blurHVal = document.getElementById("blurHVal");
+  const blurHMinusBtn = document.getElementById("blurHMinusBtn");
+  const blurHPlusBtn = document.getElementById("blurHPlusBtn");
+
+  const blurXSlider = document.getElementById("blurXSlider");
+  const blurXVal = document.getElementById("blurXVal");
+  const blurXMinusBtn = document.getElementById("blurXMinusBtn");
+  const blurXPlusBtn = document.getElementById("blurXPlusBtn");
+  const blurCenterHBtn = document.getElementById("blurCenterHBtn");
+
+  const blurYSlider = document.getElementById("blurYSlider");
+  const blurYVal = document.getElementById("blurYVal");
+  const blurYMinusBtn = document.getElementById("blurYMinusBtn");
+  const blurYPlusBtn = document.getElementById("blurYPlusBtn");
+  const blurYPresetBtns = document.querySelectorAll(".pos-preset-btn[data-blury]");
+
+  function getActiveBlurBox() {
+    if (!state.overlays.blur_boxes || state.overlays.blur_boxes.length === 0) {
+      return null;
+    }
+    if (state.activeBlurIndex < 0 || state.activeBlurIndex >= state.overlays.blur_boxes.length) {
+      state.activeBlurIndex = 0;
+    }
+    return state.overlays.blur_boxes[state.activeBlurIndex];
+  }
+
+  function syncBlurBoxControls() {
+    const box = getActiveBlurBox();
+    if (!box) {
+      if (blurBoxControls) blurBoxControls.style.display = "none";
+      return;
+    }
+    if (blurBoxControls) blurBoxControls.style.display = "block";
+
+    // Horizontal Center X: centerX = box.x + box.w / 2
+    const centerX = Math.round((box.x + box.w / 2.0) * 100);
+    const topY = Math.round(box.y * 100);
+    const w = Math.round(box.w * 100);
+    const h = Math.round(box.h * 100);
+
+    if (blurXSlider) blurXSlider.value = centerX;
+    if (blurXVal) blurXVal.innerText = `${centerX}%`;
+
+    if (blurYSlider) blurYSlider.value = topY;
+    if (blurYVal) blurYVal.innerText = `${topY}%`;
+
+    if (blurWSlider) blurWSlider.value = w;
+    if (blurWVal) blurWVal.innerText = `${w}%`;
+
+    if (blurHSlider) blurHSlider.value = h;
+    if (blurHVal) blurHVal.innerText = `${h}%`;
+
+    if (blurYPresetBtns) {
+      blurYPresetBtns.forEach(b => {
+        b.classList.toggle("active", Math.abs(parseInt(b.dataset.blury) - topY) <= 1);
+      });
+    }
+  }
+
+  function setBlurBoxWidth(val) {
+    const box = getActiveBlurBox();
+    if (!box) return;
+    const clamped = Math.max(10, Math.min(100, Math.round(val)));
+    const newW = clamped / 100.0;
+    // Keep current center X fixed while adjusting width
+    const currentCenterX = box.x + box.w / 2.0;
+    box.w = newW;
+    box.x = Math.max(0, Math.min(1.0 - box.w, currentCenterX - (box.w / 2.0)));
+    syncBlurBoxControls();
+    renderBlurBoxesList();
+    renderBlurBoxesOnCanvas();
+  }
+
+  function setBlurBoxHeight(val) {
+    const box = getActiveBlurBox();
+    if (!box) return;
+    const clamped = Math.max(5, Math.min(40, Math.round(val)));
+    box.h = clamped / 100.0;
+    box.y = Math.max(0, Math.min(1.0 - box.h, box.y));
+    syncBlurBoxControls();
+    renderBlurBoxesList();
+    renderBlurBoxesOnCanvas();
+  }
+
+  function setBlurBoxCenterX(val) {
+    const box = getActiveBlurBox();
+    if (!box) return;
+    const clamped = Math.max(0, Math.min(100, Math.round(val)));
+    const centerX = clamped / 100.0;
+    // box.x is left boundary coordinate: centerX - box.w / 2
+    box.x = Math.max(0, Math.min(1.0 - box.w, centerX - (box.w / 2.0)));
+    syncBlurBoxControls();
+    renderBlurBoxesList();
+    renderBlurBoxesOnCanvas();
+  }
+
+  function setBlurBoxY(val) {
+    const box = getActiveBlurBox();
+    if (!box) return;
+    const clamped = Math.max(0, Math.min(95, Math.round(val)));
+    box.y = Math.max(0, Math.min(1.0 - box.h, clamped / 100.0));
+    syncBlurBoxControls();
+    renderBlurBoxesList();
+    renderBlurBoxesOnCanvas();
+  }
+
+  if (blurWSlider) blurWSlider.addEventListener("input", () => setBlurBoxWidth(parseInt(blurWSlider.value)));
+  if (blurWMinusBtn) blurWMinusBtn.addEventListener("click", () => {
+    const b = getActiveBlurBox();
+    if (b) setBlurBoxWidth(Math.round(b.w * 100) - 5);
+  });
+  if (blurWPlusBtn) blurWPlusBtn.addEventListener("click", () => {
+    const b = getActiveBlurBox();
+    if (b) setBlurBoxWidth(Math.round(b.w * 100) + 5);
+  });
+
+  if (blurHSlider) blurHSlider.addEventListener("input", () => setBlurBoxHeight(parseInt(blurHSlider.value)));
+  if (blurHMinusBtn) blurHMinusBtn.addEventListener("click", () => {
+    const b = getActiveBlurBox();
+    if (b) setBlurBoxHeight(Math.round(b.h * 100) - 1);
+  });
+  if (blurHPlusBtn) blurHPlusBtn.addEventListener("click", () => {
+    const b = getActiveBlurBox();
+    if (b) setBlurBoxHeight(Math.round(b.h * 100) + 1);
+  });
+
+  if (blurXSlider) blurXSlider.addEventListener("input", () => setBlurBoxCenterX(parseInt(blurXSlider.value)));
+  if (blurXMinusBtn) blurXMinusBtn.addEventListener("click", () => {
+    const b = getActiveBlurBox();
+    if (b) setBlurBoxCenterX(Math.round((b.x + b.w / 2.0) * 100) - 2);
+  });
+  if (blurXPlusBtn) blurXPlusBtn.addEventListener("click", () => {
+    const b = getActiveBlurBox();
+    if (b) setBlurBoxCenterX(Math.round((b.x + b.w / 2.0) * 100) + 2);
+  });
+
+  if (blurCenterHBtn) {
+    blurCenterHBtn.addEventListener("click", () => {
+      const b = getActiveBlurBox();
+      if (!b) return;
+      b.x = Math.max(0, (1.0 - b.w) / 2.0);
+      syncBlurBoxControls();
+      renderBlurBoxesList();
+      renderBlurBoxesOnCanvas();
+    });
+  }
+
+  if (blurYSlider) blurYSlider.addEventListener("input", () => setBlurBoxY(parseInt(blurYSlider.value)));
+  if (blurYMinusBtn) blurYMinusBtn.addEventListener("click", () => {
+    const b = getActiveBlurBox();
+    if (b) setBlurBoxY(Math.round(b.y * 100) - 2);
+  });
+  if (blurYPlusBtn) blurYPlusBtn.addEventListener("click", () => {
+    const b = getActiveBlurBox();
+    if (b) setBlurBoxY(Math.round(b.y * 100) + 2);
+  });
+  if (blurYPresetBtns) {
+    blurYPresetBtns.forEach(btn => {
+      btn.addEventListener("click", () => setBlurBoxY(parseInt(btn.dataset.blury)));
+    });
+  }
+
   // Blur Boxes List & Canvas Management
   function renderBlurBoxesList() {
     if (!blurBoxesList) return;
-    if (state.overlays.blur_boxes.length === 0) {
+    if (!state.overlays.blur_boxes || state.overlays.blur_boxes.length === 0) {
       blurBoxesList.innerHTML = `<span class="muted small">No blur boxes added</span>`;
+      syncBlurBoxControls();
       return;
     }
     blurBoxesList.innerHTML = state.overlays.blur_boxes.map((box, i) => {
-      const isSelected = state.activeOverlayTarget === "blur" && state.activeBlurIndex === i;
+      const isSelected = state.activeBlurIndex === i;
+      const centerX = Math.round((box.x + box.w / 2.0) * 100);
+      const topY = Math.round(box.y * 100);
+      const w = Math.round(box.w * 100);
+      const h = Math.round(box.h * 100);
       return `
         <div class="blur-box-item ${isSelected ? 'active' : ''}" data-index="${i}">
-          <div style="font-weight: 600; color: #38bdf8; min-width: 48px;">#${i + 1}</div>
-          <div class="blur-box-item-inputs">
-            <div>
-              <label>X%</label>
-              <input type="number" min="0" max="100" value="${Math.round(box.x * 100)}" data-field="x" data-index="${i}">
-            </div>
-            <div>
-              <label>Y%</label>
-              <input type="number" min="0" max="100" value="${Math.round(box.y * 100)}" data-field="y" data-index="${i}">
-            </div>
-            <div>
-              <label>W%</label>
-              <input type="number" min="5" max="100" value="${Math.round(box.w * 100)}" data-field="w" data-index="${i}">
-            </div>
-            <div>
-              <label>H%</label>
-              <input type="number" min="5" max="100" value="${Math.round(box.h * 100)}" data-field="h" data-index="${i}">
-            </div>
+          <div style="font-weight: 600; color: ${isSelected ? 'var(--color-primary, #38bdf8)' : '#cbd5e1'};">
+            Blur #${i + 1}
+          </div>
+          <div class="muted small" style="flex: 1; margin: 0 8px;">
+            ${w}%×${h}% · Center X: ${centerX}%, Y: ${topY}%
           </div>
           <button type="button" class="btn btn-xs btn-danger del-blur-btn" data-index="${i}" title="Remove box">&times;</button>
         </div>
@@ -640,9 +813,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
     blurBoxesList.querySelectorAll(".blur-box-item").forEach(item => {
       item.addEventListener("click", (e) => {
-        if (e.target.classList.contains("del-blur-btn") || e.target.tagName === "INPUT") return;
+        if (e.target.classList.contains("del-blur-btn")) return;
         state.activeBlurIndex = parseInt(item.dataset.index);
-        setActiveOverlayTarget("blur");
+        state.activeOverlayTarget = "blur";
+        syncBlurBoxControls();
         renderBlurBoxesList();
         renderBlurBoxesOnCanvas();
       });
@@ -656,26 +830,13 @@ document.addEventListener("DOMContentLoaded", () => {
         if (state.activeBlurIndex >= state.overlays.blur_boxes.length) {
           state.activeBlurIndex = Math.max(0, state.overlays.blur_boxes.length - 1);
         }
+        syncBlurBoxControls();
         renderBlurBoxesList();
         renderBlurBoxesOnCanvas();
-        syncPositionControlsToTarget();
       });
     });
 
-    blurBoxesList.querySelectorAll("input").forEach(inp => {
-      inp.addEventListener("change", (e) => {
-        const idx = parseInt(inp.dataset.index);
-        const field = inp.dataset.field;
-        const val = Math.max(0, Math.min(100, parseInt(inp.value) || 0)) / 100.0;
-        if (state.overlays.blur_boxes[idx]) {
-          state.overlays.blur_boxes[idx][field] = val;
-          renderBlurBoxesOnCanvas();
-          if (state.activeBlurIndex === idx && state.activeOverlayTarget === "blur") {
-            syncPositionControlsToTarget();
-          }
-        }
-      });
-    });
+    syncBlurBoxControls();
   }
 
   function renderBlurBoxesOnCanvas() {
@@ -683,7 +844,7 @@ document.addEventListener("DOMContentLoaded", () => {
     overlayCanvas.querySelectorAll(".blur-box-elem").forEach(el => el.remove());
     state.overlays.blur_boxes.forEach((box, i) => {
       const el = document.createElement("div");
-      const isSelected = state.activeOverlayTarget === "blur" && state.activeBlurIndex === i;
+      const isSelected = state.activeBlurIndex === i;
       el.className = `blur-box-elem ${isSelected ? "active" : ""}`;
       el.style.left = `${box.x * 100}%`;
       el.style.top = `${box.y * 100}%`;
@@ -699,11 +860,13 @@ document.addEventListener("DOMContentLoaded", () => {
           box.y = Math.max(0, Math.min(1 - box.h, ny));
           el.style.left = `${box.x * 100}%`;
           el.style.top = `${box.y * 100}%`;
+          syncBlurBoxControls();
           renderBlurBoxesList();
         },
         () => {
           state.activeBlurIndex = i;
-          setActiveOverlayTarget("blur");
+          state.activeOverlayTarget = "blur";
+          syncBlurBoxControls();
           renderBlurBoxesList();
           renderBlurBoxesOnCanvas();
         }
@@ -717,285 +880,25 @@ document.addEventListener("DOMContentLoaded", () => {
     addBlurBtn.addEventListener("click", () => {
       state.overlays.blur_boxes.push({ x: 0.075, y: 0.82, w: 0.85, h: 0.10 });
       state.activeBlurIndex = state.overlays.blur_boxes.length - 1;
-      setActiveOverlayTarget("blur");
+      state.activeOverlayTarget = "blur";
+      syncBlurBoxControls();
       renderBlurBoxesList();
       renderBlurBoxesOnCanvas();
     });
   }
 
-  // Positioning Hub
-  const segBtns = document.querySelectorAll(".seg-btn");
-  const posTargetSelect = document.getElementById("posTargetSelect");
-  const gridBtns = document.querySelectorAll(".grid-btn");
-  const tapToPlaceCheck = document.getElementById("tapToPlaceCheck");
-  const posXSlider = document.getElementById("posXSlider");
-  const posYSlider = document.getElementById("posYSlider");
-  const posSizeSlider = document.getElementById("posSizeSlider");
-  const posXVal = document.getElementById("posXVal");
-  const posYVal = document.getElementById("posYVal");
-  const posSizeVal = document.getElementById("posSizeVal");
-  const stepBtns = document.querySelectorAll(".step-btn");
-  const sizeStepper = document.getElementById("sizeStepper");
-
   function setActiveOverlayTarget(target) {
     state.activeOverlayTarget = target;
-    if (posTargetSelect && posTargetSelect.value !== target) {
-      posTargetSelect.value = target;
+    if (target === "blur") {
+      syncBlurBoxControls();
     }
-    if (segBtns) {
-      segBtns.forEach(b => b.classList.toggle("active", b.dataset.target === target));
-    }
-    if (state.activeOverlayTarget === "blur" && state.overlays.blur_boxes.length === 0) {
-      state.overlays.blur_boxes.push({ x: 0.075, y: 0.82, w: 0.85, h: 0.10 });
-      state.activeBlurIndex = 0;
-      renderBlurBoxesList();
-      renderBlurBoxesOnCanvas();
-    }
-    syncPositionControlsToTarget();
     updateOverlayPositions();
     renderBlurBoxesOnCanvas();
   }
 
-  if (posTargetSelect) {
-    posTargetSelect.addEventListener("change", () => {
-      setActiveOverlayTarget(posTargetSelect.value);
-    });
-  }
-
-  if (segBtns) {
-    segBtns.forEach(btn => {
-      btn.addEventListener("click", () => {
-        setActiveOverlayTarget(btn.dataset.target);
-      });
-    });
-  }
-
-  tapToPlaceCheck.addEventListener("change", () => {
-    state.tapToPlaceEnabled = tapToPlaceCheck.checked;
-  });
-
-  // Tap-to-Place on preview container
-  previewContainer.addEventListener("click", (e) => {
-    if (!state.tapToPlaceEnabled) return;
-    if (e.target.closest(".overlay-elem") || e.target.closest(".blur-box-elem")) return;
-    const rect = previewContainer.getBoundingClientRect();
-    const x = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
-    const y = Math.max(0, Math.min(1, (e.clientY - rect.top) / rect.height));
-
-    setTargetPosition(x, y);
-  });
-
-  // 9-Grid Presets
-  const PRESET_COORDS = {
-    "top-left": [0.15, 0.10],
-    "top-center": [0.50, 0.12],
-    "top-right": [0.85, 0.10],
-    "center-left": [0.15, 0.50],
-    "center": [0.50, 0.50],
-    "center-right": [0.85, 0.50],
-    "bottom-left": [0.15, 0.88],
-    "bottom-center": [0.50, 0.84],
-    "bottom-right": [0.85, 0.88],
-  };
-
-  gridBtns.forEach(btn => {
-    btn.addEventListener("click", () => {
-      const align = btn.dataset.align;
-      const coords = PRESET_COORDS[align] || [0.5, 0.5];
-      setTargetPosition(coords[0], coords[1]);
-    });
-  });
-
-  function setTargetPosition(x, y) {
-    const t = state.activeOverlayTarget;
-    if (t === "title") {
-      state.overlays.title_pos = [x, y];
-    } else if (t === "subtitle") {
-      state.overlays.subtitle_pos = [0.50, Math.max(0.08, Math.min(0.92, y))];
-    } else if (t === "logo") {
-      state.overlays.logo_pos = [x, y];
-    } else if (t === "extra") {
-      state.overlays.extra_text_pos = [x, y];
-    } else if (t === "blur") {
-      const box = state.overlays.blur_boxes[state.activeBlurIndex];
-      if (box) {
-        box.x = Math.max(0, Math.min(1 - box.w, x - box.w / 2));
-        box.y = Math.max(0, Math.min(1 - box.h, y - box.h / 2));
-        renderBlurBoxesList();
-        renderBlurBoxesOnCanvas();
-      }
-    }
-    syncPositionControlsToTarget();
-    updateOverlayPositions();
-  }
-
-  // Stepper buttons (+ and -)
-  stepBtns.forEach(btn => {
-    btn.addEventListener("click", () => {
-      const adjust = btn.dataset.adjust;
-      const delta = parseInt(btn.dataset.delta);
-      if (adjust === "posX") {
-        posXSlider.value = Math.max(0, Math.min(100, parseInt(posXSlider.value) + delta));
-        posXSlider.dispatchEvent(new Event("input"));
-      } else if (adjust === "posY") {
-        posYSlider.value = Math.max(0, Math.min(100, parseInt(posYSlider.value) + delta));
-        posYSlider.dispatchEvent(new Event("input"));
-      } else if (adjust === "size") {
-        const isSub = (state.activeOverlayTarget === "subtitle");
-        const min = parseFloat(posSizeSlider.min) || (isSub ? 2.0 : 6);
-        const max = parseFloat(posSizeSlider.max) || (isSub ? 6.5 : 96);
-        const step = parseFloat(posSizeSlider.step) || (isSub ? 0.2 : 1);
-        const current = parseFloat(posSizeSlider.value) || 0;
-        const change = (delta > 0 ? step : -step);
-        const next = Math.max(min, Math.min(max, +(current + change).toFixed(1)));
-        posSizeSlider.value = next;
-        posSizeSlider.dispatchEvent(new Event("input"));
-      }
-    });
-  });
-
-  posXSlider.addEventListener("input", () => {
-    const x = parseInt(posXSlider.value) / 100.0;
-    posXVal.innerText = `${posXSlider.value}%`;
-    const t = state.activeOverlayTarget;
-    if (t === "title") state.overlays.title_pos[0] = x;
-    else if (t === "subtitle") {
-      state.overlays.subtitle_pos[0] = 0.50;
-      posXSlider.value = 50;
-      posXVal.innerText = "50%";
-    }
-    else if (t === "logo") state.overlays.logo_pos[0] = x;
-    else if (t === "extra") state.overlays.extra_text_pos[0] = x;
-    else if (t === "blur") {
-      const box = state.overlays.blur_boxes[state.activeBlurIndex];
-      if (box) {
-        box.x = x;
-        renderBlurBoxesList();
-        renderBlurBoxesOnCanvas();
-      }
-    }
-    updateOverlayPositions();
-  });
-
-  posYSlider.addEventListener("input", () => {
-    const y = parseInt(posYSlider.value) / 100.0;
-    posYVal.innerText = `${posYSlider.value}%`;
-    const t = state.activeOverlayTarget;
-    if (t === "title") state.overlays.title_pos[1] = y;
-    else if (t === "subtitle") {
-      state.overlays.subtitle_pos[1] = y;
-      if (subYSlider) subYSlider.value = Math.round(y * 100);
-      if (subYVal) subYVal.innerText = `${Math.round(y * 100)}%`;
-      if (subYPresetBtns) {
-        subYPresetBtns.forEach(b => b.classList.toggle("active", parseInt(b.dataset.suby) === Math.round(y * 100)));
-      }
-    }
-    else if (t === "logo") state.overlays.logo_pos[1] = y;
-    else if (t === "extra") state.overlays.extra_text_pos[1] = y;
-    else if (t === "blur") {
-      const box = state.overlays.blur_boxes[state.activeBlurIndex];
-      if (box) {
-        box.y = y;
-        renderBlurBoxesList();
-        renderBlurBoxesOnCanvas();
-      }
-    }
-    updateOverlayPositions();
-  });
-
-  posSizeSlider.addEventListener("input", () => {
-    const isSub = (state.activeOverlayTarget === "subtitle");
-    const val = isSub ? parseFloat(posSizeSlider.value) : parseInt(posSizeSlider.value);
-    const t = state.activeOverlayTarget;
-    if (t === "title") {
-      state.overlays.title_size = val;
-      posSizeVal.innerText = `${val}px`;
-    } else if (t === "subtitle") {
-      state.overlays.subtitle_size = val;
-      state.overlays.subtitle_size_pct = val;
-      if (subSizeSlider) subSizeSlider.value = val;
-      if (subSizeVal) subSizeVal.innerText = `${val.toFixed(1)}%`;
-      posSizeVal.innerText = `${val.toFixed(1)}%`;
-      if (subSizePresetBtns) {
-        subSizePresetBtns.forEach(b => b.classList.toggle("active", Math.abs(parseFloat(b.dataset.subsize) - val) < 0.1));
-      }
-    } else if (t === "extra") {
-      state.overlays.extra_size = val;
-      posSizeVal.innerText = `${val}px`;
-    } else if (t === "logo") {
-      state.overlays.logo_width_frac = val / 100.0;
-      logoSizeSlider.value = val;
-      logoSizeVal.innerText = `${val}%`;
-      posSizeVal.innerText = `${val}%`;
-    } else if (t === "blur") {
-      const box = state.overlays.blur_boxes[state.activeBlurIndex];
-      if (box) {
-        box.w = val / 100.0;
-        posSizeVal.innerText = `${val}%`;
-        renderBlurBoxesList();
-        renderBlurBoxesOnCanvas();
-      }
-    }
-    updateOverlayPositions();
-  });
-
   function syncPositionControlsToTarget() {
-    const t = state.activeOverlayTarget;
-    let pos = [0.5, 0.5];
-    let size = 54;
-    let minSize = 16, maxSize = 96, stepSize = 2;
-    let unit = "px";
-    let label = "Size / Scale";
-
-    if (t === "title") {
-      pos = state.overlays.title_pos;
-      size = state.overlays.title_size;
-      minSize = 18; maxSize = 96; stepSize = 2;
-      unit = "px";
-      label = "Title Font Size";
-    } else if (t === "subtitle") {
-      pos = state.overlays.subtitle_pos;
-      size = state.overlays.subtitle_size_pct || state.overlays.subtitle_size || 3.6;
-      minSize = 2.0; maxSize = 6.5; stepSize = 0.2;
-      unit = "%";
-      label = "Subtitle Size (% of Video Height)";
-    } else if (t === "extra") {
-      pos = state.overlays.extra_text_pos;
-      size = state.overlays.extra_size;
-      minSize = 16; maxSize = 80; stepSize = 2;
-      unit = "px";
-      label = "Extra Font Size";
-    } else if (t === "logo") {
-      pos = state.overlays.logo_pos;
-      size = Math.round(state.overlays.logo_width_frac * 100);
-      minSize = 6; maxSize = 40; stepSize = 1;
-      unit = "%";
-      label = "Logo Width";
-    } else if (t === "blur") {
-      const box = state.overlays.blur_boxes[state.activeBlurIndex] || state.overlays.blur_boxes[0];
-      if (box) {
-        pos = [box.x, box.y];
-        size = Math.round(box.w * 100);
-      }
-      minSize = 5; maxSize = 70; stepSize = 1;
-      unit = "%";
-      label = "Blur Box Width";
-    }
-
-    posXSlider.value = Math.round(pos[0] * 100);
-    posYSlider.value = Math.round(pos[1] * 100);
-    posXVal.innerText = `${posXSlider.value}%`;
-    posYVal.innerText = `${posYSlider.value}%`;
-
-    posSizeSlider.min = minSize;
-    posSizeSlider.max = maxSize;
-    posSizeSlider.step = stepSize;
-    posSizeSlider.value = size;
-    posSizeVal.innerText = `${unit === "%" && t === "subtitle" ? Number(size).toFixed(1) : size}${unit}`;
-
-    const sizeLabelElem = sizeStepper ? sizeStepper.querySelector("label") : null;
-    if (sizeLabelElem) {
-      sizeLabelElem.innerHTML = `${label} (<span id="posSizeVal">${unit === "%" && t === "subtitle" ? Number(size).toFixed(1) : size}${unit}</span>)`;
+    if (state.activeOverlayTarget === "blur") {
+      syncBlurBoxControls();
     }
   }
 
@@ -1681,4 +1584,5 @@ document.addEventListener("DOMContentLoaded", () => {
   loadJobs();
   renderBlurBoxesList();
   renderBlurBoxesOnCanvas();
+  setMobileStudioView("left");
 });

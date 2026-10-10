@@ -58,31 +58,31 @@
       
       <!-- ================= 1. WORKSPACE TAB ================= -->
       <section id="tab-workspace" class="tab-pane active">
-        <!-- Mobile Studio View Tabs -->
+        <!-- Mobile Studio Step Switcher -->
         <div class="mobile-view-tabs">
-          <button type="button" class="view-tab-btn active" data-view="center">
-            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><polygon points="10 8 16 11.5 10 15 10 8"/></svg>
-            <span>Preview & Align</span>
+          <button type="button" class="view-tab-btn active" data-view="left">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+            <span>1. Video</span>
           </button>
-          <button type="button" class="view-tab-btn" data-view="left">
-            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/></svg>
-            <span>Video & Audio</span>
+          <button type="button" class="view-tab-btn" data-view="center">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><polygon points="10 8 16 11.5 10 15 10 8"/></svg>
+            <span>2. Preview</span>
           </button>
           <button type="button" class="view-tab-btn" data-view="right">
-            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><line x1="7" y1="15" x2="17" y2="15"/><line x1="7" y1="11" x2="13" y2="11"/></svg>
-            <span>Subtitles & Framing</span>
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/></svg>
+            <span>3. Audio & Start</span>
           </button>
         </div>
 
-        <div class="workspace-layout" data-mobile-view="center">
+        <div class="workspace-layout" data-mobile-view="left">
           
-          <!-- Left Column: Source Selection & Settings -->
-          <div class="pane left-pane">
+          <!-- STEP 1: Video Source & Framing (Left Column) -->
+          <div class="pane left-pane" id="stepPaneVideo">
             
             <!-- Source Input Card -->
             <div class="card">
               <div class="card-header">
-                <h3>Source Video</h3>
+                <h3>1. Source Video</h3>
               </div>
               <div class="card-body">
                 
@@ -112,6 +112,14 @@
                   </div>
                 </div>
 
+                <!-- Or Quick Pick from Library -->
+                <div class="form-row mb-3" id="quickSourceWrap">
+                  <label>Or Saved Video</label>
+                  <select id="quickSourceSelect">
+                    <option value="">-- Choose from library --</option>
+                  </select>
+                </div>
+
                 <!-- Selected Video Banner -->
                 <div id="selectedSourceBanner" class="selected-banner hidden">
                   <div class="thumb-wrap">
@@ -128,10 +136,324 @@
               </div>
             </div>
 
-            <!-- Voice & Translation Settings -->
+            <!-- Framing & Aspect Ratio Card -->
             <div class="card">
               <div class="card-header">
-                <h3>Voice & Translation</h3>
+                <h3>Framing & Aspect Ratio</h3>
+              </div>
+              <div class="card-body">
+                <div class="form-row">
+                  <label>Aspect Ratio</label>
+                  <select id="ratioSelect">
+                    <option value="16:9" selected>16:9 (Landscape)</option>
+                    <option value="9:16">9:16 (Vertical Reels/TikTok)</option>
+                    <option value="1:1">1:1 (Square)</option>
+                    <option value="Original">Original</option>
+                  </select>
+                </div>
+
+                <div class="form-row">
+                  <label>Fill Mode</label>
+                  <select id="fillSelect">
+                    <option value="blur" selected>Blur background</option>
+                    <option value="black">Black bars</option>
+                    <option value="crop">Crop to fill</option>
+                  </select>
+                </div>
+
+                <div class="form-row">
+                  <div class="label-with-val">
+                    <label>Zoom</label>
+                    <span id="zoomVal">1.05x</span>
+                  </div>
+                  <input type="range" id="zoomSlider" min="1.00" max="1.25" value="1.05" step="0.01">
+                </div>
+
+                <div class="form-row checkbox-row">
+                  <label class="switch-label">
+                    <input type="checkbox" id="flipCheck">
+                    <span>Mirror video</span>
+                  </label>
+                </div>
+
+                <button type="button" class="btn btn-primary step-next-btn w-100 mt-4" data-next="center">
+                  <span>Next: Preview & Subtitles →</span>
+                </button>
+              </div>
+            </div>
+
+          </div>
+
+
+          <!-- STEP 2: Live Preview Studio & Overlays (Middle Column) -->
+          <div class="pane center-pane" id="stepPanePreview">
+            
+            <!-- Preview Video Card -->
+            <div class="card preview-card">
+              <div class="card-header space-between">
+                <h3>2. Video Preview</h3>
+                <div class="header-tools">
+                  <span id="previewTimeLabel" class="muted small font-mono">00:00 / 00:00</span>
+                  <button id="refreshFrameBtn" class="btn btn-sm btn-secondary">Refresh</button>
+                </div>
+              </div>
+
+              <div class="card-body preview-body">
+                <!-- Preview Canvas Stage -->
+                <div class="preview-stage-container" id="previewContainer">
+                  <img id="previewImage" src="" alt="Frame preview">
+                  <div id="overlayCanvas" class="overlay-layer">
+                    <!-- Title Element -->
+                    <div id="overlayTitle" class="overlay-elem title-elem hidden">
+                      <span id="overlayTitleText">Title Preview</span>
+                    </div>
+                    <!-- Extra Text Element -->
+                    <div id="overlayExtra" class="overlay-elem extra-elem hidden">
+                      <span id="overlayExtraText">Extra Text</span>
+                    </div>
+                    <!-- Logo Element -->
+                    <div id="overlayLogo" class="overlay-elem logo-elem hidden">
+                      <img id="overlayLogoImg" src="" alt="Logo">
+                    </div>
+                    <!-- Subtitle Element (Rendered strictly above blur boxes) -->
+                    <div id="overlaySubtitle" class="overlay-elem subtitle-elem hidden">
+                      <span id="overlaySubtitleText">ဒါကတော့ မြန်မာစာတန်းထိုး နမူနာ ဖြစ်ပါတယ်</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Seek Slider -->
+                <div class="seek-bar-row">
+                  <button id="seekBackBtn" class="btn btn-sm btn-icon">◀ 5s</button>
+                  <input type="range" id="previewSeekSlider" min="0" max="100" value="0" step="0.5">
+                  <button id="seekFwdBtn" class="btn btn-sm btn-icon">5s ▶</button>
+                </div>
+                <div class="text-center muted small mb-1">
+                  <span>💡 Tip: Tap and drag subtitles or blur boxes directly on the video frame above</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Burmese Subtitles Card -->
+            <div class="card">
+              <div class="card-header space-between">
+                <h3>Burmese Subtitles</h3>
+                <label class="switch-label small">
+                  <input type="checkbox" id="burnSubtitlesCheck" checked>
+                  <span>Burn on Video</span>
+                </label>
+              </div>
+              <div class="card-body">
+                <!-- Subtitle Font Size with Steppers -->
+                <div class="form-row">
+                  <div class="label-with-val">
+                    <label>Font Size</label>
+                    <span id="subSizeVal" class="badge-value">3.6%</span>
+                  </div>
+                  <div class="stepper-row">
+                    <button type="button" class="btn-stepper" id="subSizeMinusBtn" title="Decrease font size">-</button>
+                    <input type="range" id="subSizeSlider" min="2.0" max="6.5" value="3.6" step="0.2">
+                    <button type="button" class="btn-stepper" id="subSizePlusBtn" title="Increase font size">+</button>
+                  </div>
+                  <!-- Quick Size Presets -->
+                  <div class="size-preset-pills mt-2">
+                    <button type="button" class="preset-pill-btn" data-subsize="2.8">Small (2.8%)</button>
+                    <button type="button" class="preset-pill-btn active" data-subsize="3.6">Medium (3.6%)</button>
+                    <button type="button" class="preset-pill-btn" data-subsize="4.4">Large (4.4%)</button>
+                    <button type="button" class="preset-pill-btn" data-subsize="5.2">X-Large (5.2%)</button>
+                  </div>
+                </div>
+
+                <!-- Subtitle Box Width with Steppers -->
+                <div class="form-row">
+                  <div class="label-with-val">
+                    <label>Box Max Width</label>
+                    <span id="subWidthVal" class="badge-value">85%</span>
+                  </div>
+                  <div class="stepper-row">
+                    <button type="button" class="btn-stepper" id="subWidthMinusBtn" title="Narrow box">-</button>
+                    <input type="range" id="subWidthSlider" min="50" max="95" value="85" step="5">
+                    <button type="button" class="btn-stepper" id="subWidthPlusBtn" title="Widen box">+</button>
+                  </div>
+                  <div class="size-preset-pills mt-2">
+                    <button type="button" class="preset-pill-btn" data-subwidth="70">Narrow (70%)</button>
+                    <button type="button" class="preset-pill-btn active" data-subwidth="85">Standard (85%)</button>
+                    <button type="button" class="preset-pill-btn" data-subwidth="95">Wide (95%)</button>
+                  </div>
+                </div>
+
+                <!-- Position Adjustment -->
+                <div class="form-row">
+                  <div class="label-with-val">
+                    <label>Vertical Position (Y)</label>
+                    <span id="subYVal" class="badge-value">86%</span>
+                  </div>
+                  <div class="stepper-row">
+                    <button type="button" class="btn-stepper" id="subYMinusBtn" title="Move Up">-</button>
+                    <input type="range" id="subYSlider" min="10" max="95" value="86" step="2">
+                    <button type="button" class="btn-stepper" id="subYPlusBtn" title="Move Down">+</button>
+                  </div>
+                  <!-- Quick Position Presets -->
+                  <div class="size-preset-pills mt-2">
+                    <button type="button" class="pos-preset-btn" data-suby="12">Top (12%)</button>
+                    <button type="button" class="pos-preset-btn" data-suby="50">Middle (50%)</button>
+                    <button type="button" class="pos-preset-btn active" data-suby="86">Bottom (86%)</button>
+                    <button type="button" class="pos-preset-btn" id="subCenterHBtn">Center X (50%)</button>
+                  </div>
+                </div>
+
+                <!-- Subtitle Color -->
+                <div class="form-row">
+                  <label>Color</label>
+                  <div class="row-flex gap-2" style="display:flex; align-items:center; gap:8px;">
+                    <button type="button" class="btn btn-sm sub-color-btn active" data-color="#FFDE00" style="background:#FFDE00; color:#000; font-weight:700; padding:3px 10px; border-radius:4px;">Yellow</button>
+                    <button type="button" class="btn btn-sm sub-color-btn" data-color="#FFFFFF" style="background:#FFFFFF; color:#000; font-weight:700; padding:3px 10px; border-radius:4px;">White</button>
+                    <button type="button" class="btn btn-sm sub-color-btn" data-color="#38BDF8" style="background:#38BDF8; color:#000; font-weight:700; padding:3px 10px; border-radius:4px;">Cyan</button>
+                    <input type="color" id="subColorPicker" value="#FFDE00" style="width:38px; height:34px; padding:0; border:none; border-radius:4px; cursor:pointer;">
+                  </div>
+                </div>
+
+                <!-- Subtitle Style -->
+                <div class="form-row">
+                  <label>Style</label>
+                  <select id="subStyleSelect">
+                    <option value="outline" selected>Outline & Shadow</option>
+                    <option value="box">Bounding Box</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <!-- Watermark Blur Box Card -->
+            <div class="card">
+              <div class="card-header space-between">
+                <div>
+                  <h3>Blur Watermark / Hardsubs</h3>
+                  <p class="muted small mb-0">Masks original burnt subtitles behind new Burmese text</p>
+                </div>
+                <button type="button" id="addBlurBtn" class="btn btn-sm btn-secondary">+ Add Box</button>
+              </div>
+              <div class="card-body">
+                <div id="blurBoxesList" class="blur-boxes-list mb-3">
+                  <span class="muted small">No blur boxes added</span>
+                </div>
+
+                <!-- Single Unified Blur Box Controls -->
+                <div id="blurBoxControls" class="blur-box-controls-panel">
+                  <div class="form-row">
+                    <div class="label-with-val">
+                      <label>Box Width</label>
+                      <span id="blurWVal" class="badge-value">85%</span>
+                    </div>
+                    <div class="stepper-row">
+                      <button type="button" class="btn-stepper" id="blurWMinusBtn">-</button>
+                      <input type="range" id="blurWSlider" min="10" max="100" value="85" step="5">
+                      <button type="button" class="btn-stepper" id="blurWPlusBtn">+</button>
+                    </div>
+                  </div>
+
+                  <div class="form-row">
+                    <div class="label-with-val">
+                      <label>Box Height</label>
+                      <span id="blurHVal" class="badge-value">10%</span>
+                    </div>
+                    <div class="stepper-row">
+                      <button type="button" class="btn-stepper" id="blurHMinusBtn">-</button>
+                      <input type="range" id="blurHSlider" min="5" max="40" value="10" step="1">
+                      <button type="button" class="btn-stepper" id="blurHPlusBtn">+</button>
+                    </div>
+                  </div>
+
+                  <!-- Center X Position (Always relative to Center of Video) -->
+                  <div class="form-row">
+                    <div class="label-with-val">
+                      <label>Horizontal Position (Center X)</label>
+                      <span id="blurXVal" class="badge-value">50%</span>
+                    </div>
+                    <div class="stepper-row">
+                      <button type="button" class="btn-stepper" id="blurXMinusBtn">-</button>
+                      <input type="range" id="blurXSlider" min="0" max="100" value="50" step="1">
+                      <button type="button" class="btn-stepper" id="blurXPlusBtn">+</button>
+                    </div>
+                    <div class="size-preset-pills mt-2">
+                      <button type="button" class="pos-preset-btn active" id="blurCenterHBtn">Center Horizontally (50%)</button>
+                    </div>
+                  </div>
+
+                  <!-- Vertical Position Y -->
+                  <div class="form-row">
+                    <div class="label-with-val">
+                      <label>Vertical Position (Y)</label>
+                      <span id="blurYVal" class="badge-value">82%</span>
+                    </div>
+                    <div class="stepper-row">
+                      <button type="button" class="btn-stepper" id="blurYMinusBtn">-</button>
+                      <input type="range" id="blurYSlider" min="0" max="95" value="82" step="2">
+                      <button type="button" class="btn-stepper" id="blurYPlusBtn">+</button>
+                    </div>
+                    <div class="size-preset-pills mt-2">
+                      <button type="button" class="pos-preset-btn" data-blury="10">Top (10%)</button>
+                      <button type="button" class="pos-preset-btn" data-blury="50">Middle (50%)</button>
+                      <button type="button" class="pos-preset-btn active" data-blury="82">Bottom (82%)</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Optional Brand Overlays Card -->
+            <div class="card">
+              <div class="card-header">
+                <h3>Optional Branding (Title & Logo)</h3>
+              </div>
+              <div class="card-body">
+                <!-- Title Text -->
+                <div class="form-row mb-3">
+                  <label>Title Text</label>
+                  <input type="text" id="titleTextInput" class="mm-text" placeholder="မြန်မာ ခေါင်းစဉ် ရေးရန်...">
+                </div>
+
+                <!-- Extra Text -->
+                <div class="form-row mb-3">
+                  <label>Extra Text / Watermark Text</label>
+                  <input type="text" id="extraTextInput" class="mm-text" placeholder="စာတို ရေးရန်...">
+                </div>
+
+                <!-- Logo Image -->
+                <div class="form-row">
+                  <div class="space-between mb-2">
+                    <label>Logo Overlay</label>
+                    <label class="switch-label small">
+                      <input type="checkbox" id="logoEnabledCheck">
+                      <span>Enable</span>
+                    </label>
+                  </div>
+                  <input type="file" id="logoFileInput" accept="image/png,image/jpeg,image/webp">
+                  <div class="form-row mt-2">
+                    <div class="label-with-val">
+                      <label>Logo Size</label>
+                      <span id="logoSizeVal">16%</span>
+                    </div>
+                    <input type="range" id="logoSizeSlider" min="6" max="35" value="16" step="1">
+                  </div>
+                </div>
+
+                <button type="button" class="btn btn-primary step-next-btn w-100 mt-4" data-next="right">
+                  <span>Next: Voice & Produce →</span>
+                </button>
+              </div>
+            </div>
+
+          </div>
+
+
+          <!-- STEP 3: Voice, Background Audio & Production Run (Right Column) -->
+          <div class="pane right-pane" id="stepPaneAudio">
+            
+            <!-- Voice & Narration Card -->
+            <div class="card">
+              <div class="card-header">
+                <h3>3. Voice & Narration</h3>
               </div>
               <div class="card-body">
                 <div class="form-row">
@@ -167,7 +489,7 @@
               </div>
             </div>
 
-            <!-- Original Background Sound Card -->
+            <!-- Background Sound Card -->
             <div class="card">
               <div class="card-header space-between">
                 <h3>Background Sound</h3>
@@ -177,10 +499,10 @@
                 </label>
               </div>
               <div class="card-body">
-                <p class="muted small mb-2">Removes human vocals, keeps music and sound effects.</p>
+                <p class="muted small mb-2">Removes English human voices via AI, preserves background music & effects.</p>
                 <div class="form-row" id="origBgVolRow">
                   <div class="label-with-val">
-                    <label>Volume</label>
+                    <label>BGM Volume</label>
                     <span id="origBgVolVal">25%</span>
                   </div>
                   <input type="range" id="origBgVolSlider" min="5" max="100" value="25" step="5">
@@ -189,330 +511,16 @@
               </div>
             </div>
 
-          </div>
-
-          <!-- Middle Column: Preview Frame & Touch Positioning -->
-          <div class="pane center-pane">
-            <div class="card preview-card">
-              <div class="card-header space-between">
-                <h3>Preview</h3>
-                <div class="header-tools">
-                  <span id="previewTimeLabel" class="muted small font-mono">00:00 / 00:00</span>
-                  <button id="refreshFrameBtn" class="btn btn-sm btn-secondary">Refresh</button>
-                </div>
-              </div>
-
-              <div class="card-body preview-body">
-                
-                <!-- Preview Canvas Stage -->
-                <div class="preview-stage-container" id="previewContainer">
-                  <img id="previewImage" src="" alt="Frame preview">
-                  <div id="overlayCanvas" class="overlay-layer">
-                    <!-- Title Element -->
-                    <div id="overlayTitle" class="overlay-elem title-elem hidden">
-                      <span id="overlayTitleText">Title Preview</span>
-                    </div>
-                    <!-- Extra Text Element -->
-                    <div id="overlayExtra" class="overlay-elem extra-elem hidden">
-                      <span id="overlayExtraText">Extra Text</span>
-                    </div>
-                    <!-- Logo Element -->
-                    <div id="overlayLogo" class="overlay-elem logo-elem hidden">
-                      <img id="overlayLogoImg" src="" alt="Logo">
-                    </div>
-                    <!-- Subtitle Element (Rendered strictly above blur boxes) -->
-                    <div id="overlaySubtitle" class="overlay-elem subtitle-elem hidden">
-                      <span id="overlaySubtitleText">ဒါကတော့ မြန်မာစာတန်းထိုး နမူနာ ဖြစ်ပါတယ်</span>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- Seek Slider -->
-                <div class="seek-bar-row">
-                  <button id="seekBackBtn" class="btn btn-sm btn-icon">◀ 5s</button>
-                  <input type="range" id="previewSeekSlider" min="0" max="100" value="0" step="0.5">
-                  <button id="seekFwdBtn" class="btn btn-sm btn-icon">5s ▶</button>
-                </div>
-
-                <!-- Touch & Mobile Positioning Control Hub -->
-                <div class="mobile-positioning-panel" id="mobilePositioning">
-                  <div class="pos-panel-header">
-                    <h4>Position & Alignment</h4>
-                  </div>
-
-                  <!-- Select active overlay to adjust via clean dropdown -->
-                  <div class="pos-target-selector">
-                    <label for="posTargetSelect">Target Layer</label>
-                    <div class="target-select-wrap">
-                      <select id="posTargetSelect" class="target-dropdown">
-                        <option value="subtitle" selected>Subtitle</option>
-                        <option value="title">Title</option>
-                        <option value="logo">Logo</option>
-                        <option value="extra">Extra Text</option>
-                        <option value="blur">Blur Watermark</option>
-                      </select>
-                    </div>
-                  </div>
-
-                  <!-- 9-Grid Alignment Presets -->
-                  <div class="preset-grid-wrapper">
-                    <label class="small muted">Presets:</label>
-                    <div class="preset-grid">
-                      <button class="grid-btn" data-align="top-left">Top-L</button>
-                      <button class="grid-btn" data-align="top-center">Top-C</button>
-                      <button class="grid-btn" data-align="top-right">Top-R</button>
-                      <button class="grid-btn" data-align="center-left">Mid-L</button>
-                      <button class="grid-btn" data-align="center">Center</button>
-                      <button class="grid-btn" data-align="center-right">Mid-R</button>
-                      <button class="grid-btn" data-align="bottom-left">Bot-L</button>
-                      <button class="grid-btn" data-align="bottom-center">Bot-C</button>
-                      <button class="grid-btn" data-align="bottom-right">Bot-R</button>
-                    </div>
-                  </div>
-
-                  <!-- Tap-to-Place toggle -->
-                  <div class="tap-place-row">
-                    <label class="switch-label">
-                      <input type="checkbox" id="tapToPlaceCheck">
-                      <span>Tap canvas to place</span>
-                    </label>
-                  </div>
-
-                  <!-- Fine-Tuning Sliders -->
-                  <div class="fine-tuning-sliders">
-                    <div class="slider-stepper">
-                      <label>X Position (<span id="posXVal">50%</span>)</label>
-                      <div class="stepper-row">
-                        <button class="step-btn" data-adjust="posX" data-delta="-2">-</button>
-                        <input type="range" id="posXSlider" min="0" max="100" value="50">
-                        <button class="step-btn" data-adjust="posX" data-delta="2">+</button>
-                      </div>
-                    </div>
-
-                    <div class="slider-stepper">
-                      <label>Y Position (<span id="posYVal">12%</span>)</label>
-                      <div class="stepper-row">
-                        <button class="step-btn" data-adjust="posY" data-delta="-2">-</button>
-                        <input type="range" id="posYSlider" min="0" max="100" value="12">
-                        <button class="step-btn" data-adjust="posY" data-delta="2">+</button>
-                      </div>
-                    </div>
-
-                    <div class="slider-stepper" id="sizeStepper">
-                      <label>Size (<span id="posSizeVal">54px</span>)</label>
-                      <div class="stepper-row">
-                        <button class="step-btn" data-adjust="size" data-delta="-2">-</button>
-                        <input type="range" id="posSizeSlider" min="16" max="96" value="54">
-                        <button class="step-btn" data-adjust="size" data-delta="2">+</button>
-                      </div>
-                    </div>
-                  </div>
-
-                </div>
-
-              </div>
-            </div>
-
-          </div>
-
-          <!-- Right Column: Framing, Overlays & Subtitles -->
-          <div class="pane right-pane">
-            <div class="card">
+            <!-- Execution & Live Process Card (Natural document flow, non-floating) -->
+            <div class="card run-card" id="productionRunCard">
               <div class="card-header">
-                <h3>Framing</h3>
+                <h3>Produce Recap Video</h3>
               </div>
               <div class="card-body">
-                <div class="form-row">
-                  <label>Aspect Ratio</label>
-                  <select id="ratioSelect">
-                    <option value="16:9" selected>16:9 (Landscape)</option>
-                    <option value="9:16">9:16 (Vertical)</option>
-                    <option value="1:1">1:1 (Square)</option>
-                    <option value="Original">Original</option>
-                  </select>
-                </div>
-
-                <div class="form-row">
-                  <label>Fill Mode</label>
-                  <select id="fillSelect">
-                    <option value="blur" selected>Blur background</option>
-                    <option value="black">Black bars</option>
-                    <option value="crop">Crop to fill</option>
-                  </select>
-                </div>
-
-                <div class="form-row">
-                  <div class="label-with-val">
-                    <label>Zoom</label>
-                    <span id="zoomVal">1.05x</span>
-                  </div>
-                  <input type="range" id="zoomSlider" min="1.00" max="1.25" value="1.05" step="0.01">
-                </div>
-
-                <div class="form-row checkbox-row">
-                  <label class="switch-label">
-                    <input type="checkbox" id="flipCheck">
-                    <span>Mirror video</span>
-                  </label>
-                </div>
-              </div>
-            </div>
-
-            <!-- Overlays Card -->
-            <div class="card">
-              <div class="card-header">
-                <h3>Overlays</h3>
-              </div>
-              <div class="card-body">
-                
-                <!-- Title Text -->
-                <div class="overlay-section">
-                  <h4>Title</h4>
-                  <input type="text" id="titleTextInput" class="mm-text" placeholder="မြန်မာ ခေါင်းစဉ် ရေးရန်...">
-                </div>
-
-                <!-- Extra Text -->
-                <div class="overlay-section">
-                  <h4>Extra Text</h4>
-                  <input type="text" id="extraTextInput" class="mm-text" placeholder="စာတို ရေးရန်...">
-                </div>
-
-                <!-- Logo Image -->
-                <div class="overlay-section">
-                  <div class="space-between mb-2">
-                    <h4>Logo</h4>
-                    <label class="switch-label small">
-                      <input type="checkbox" id="logoEnabledCheck">
-                      <span>Enable</span>
-                    </label>
-                  </div>
-                  <div class="row-flex mb-2">
-                    <input type="file" id="logoFileInput" accept="image/png,image/jpeg,image/webp">
-                  </div>
-                  <div class="form-row">
-                    <div class="label-with-val">
-                      <label>Size</label>
-                      <span id="logoSizeVal">16%</span>
-                    </div>
-                    <input type="range" id="logoSizeSlider" min="6" max="35" value="16" step="1">
-                  </div>
-                </div>
-
-                <!-- Blur Watermark Boxes -->
-                <div class="overlay-section">
-                  <div class="space-between mb-2">
-                    <h4>Blur Boxes</h4>
-                    <button id="addBlurBtn" class="btn btn-sm btn-secondary">+ Add Box</button>
-                  </div>
-                  <div id="blurBoxesList" class="blur-boxes-list">
-                    <span class="muted small">No blur boxes added</span>
-                  </div>
-                </div>
-
-              </div>
-            </div>
-
-            <!-- Burmese Subtitles Card -->
-            <div class="card">
-              <div class="card-header space-between">
-                <h3>Subtitles</h3>
-                <label class="switch-label small">
-                  <input type="checkbox" id="burnSubtitlesCheck" checked>
-                  <span>Burn on Video</span>
-                </label>
-              </div>
-              <div class="card-body">
-                <!-- Font Size with Steppers -->
-                <div class="form-row">
-                  <div class="label-with-val">
-                    <label>Font Size</label>
-                    <span id="subSizeVal" class="badge-value">3.6%</span>
-                  </div>
-                  <div class="stepper-row">
-                    <button type="button" class="btn-stepper" id="subSizeMinusBtn" title="Decrease font size">-</button>
-                    <input type="range" id="subSizeSlider" min="2.0" max="6.5" value="3.6" step="0.2">
-                    <button type="button" class="btn-stepper" id="subSizePlusBtn" title="Increase font size">+</button>
-                  </div>
-                  <!-- Quick Size Presets -->
-                  <div class="size-preset-pills mt-2">
-                    <button type="button" class="preset-pill-btn" data-subsize="2.8">Small (2.8%)</button>
-                    <button type="button" class="preset-pill-btn active" data-subsize="3.6">Medium (3.6%)</button>
-                    <button type="button" class="preset-pill-btn" data-subsize="4.4">Large (4.4%)</button>
-                    <button type="button" class="preset-pill-btn" data-subsize="5.2">X-Large (5.2%)</button>
-                  </div>
-                </div>
-
-                <!-- Subtitle Box Width with Steppers -->
-                <div class="form-row">
-                  <div class="label-with-val">
-                    <label>Box Width</label>
-                    <span id="subWidthVal" class="badge-value">85%</span>
-                  </div>
-                  <div class="stepper-row">
-                    <button type="button" class="btn-stepper" id="subWidthMinusBtn" title="Narrow box">-</button>
-                    <input type="range" id="subWidthSlider" min="50" max="95" value="85" step="5">
-                    <button type="button" class="btn-stepper" id="subWidthPlusBtn" title="Widen box">+</button>
-                  </div>
-                  <div class="size-preset-pills mt-2">
-                    <button type="button" class="preset-pill-btn" data-subwidth="70">Narrow (70%)</button>
-                    <button type="button" class="preset-pill-btn active" data-subwidth="85">Standard (85%)</button>
-                    <button type="button" class="preset-pill-btn" data-subwidth="95">Wide (95%)</button>
-                  </div>
-                </div>
-
-                <!-- Position Adjustment -->
-                <div class="form-row">
-                  <div class="label-with-val">
-                    <label>Position (Y)</label>
-                    <span id="subYVal" class="badge-value">86%</span>
-                  </div>
-                  <div class="stepper-row">
-                    <button type="button" class="btn-stepper" id="subYMinusBtn" title="Move Up">-</button>
-                    <input type="range" id="subYSlider" min="10" max="95" value="86" step="2">
-                    <button type="button" class="btn-stepper" id="subYPlusBtn" title="Move Down">+</button>
-                  </div>
-                  <!-- Quick Position Presets -->
-                  <div class="size-preset-pills mt-2">
-                    <button type="button" class="pos-preset-btn" data-suby="12">Top (12%)</button>
-                    <button type="button" class="pos-preset-btn" data-suby="50">Middle (50%)</button>
-                    <button type="button" class="pos-preset-btn active" data-suby="86">Bottom (86%)</button>
-                    <button type="button" class="pos-preset-btn" id="subCenterHBtn">Center X</button>
-                  </div>
-                </div>
-
-                <!-- Subtitle Color -->
-                <div class="form-row">
-                  <label>Color</label>
-                  <div class="row-flex gap-2" style="display:flex; align-items:center; gap:8px;">
-                    <button type="button" class="btn btn-sm sub-color-btn active" data-color="#FFDE00" style="background:#FFDE00; color:#000; font-weight:700; padding:3px 10px; border-radius:4px;">Yellow</button>
-                    <button type="button" class="btn btn-sm sub-color-btn" data-color="#FFFFFF" style="background:#FFFFFF; color:#000; font-weight:700; padding:3px 10px; border-radius:4px;">White</button>
-                    <button type="button" class="btn btn-sm sub-color-btn" data-color="#38BDF8" style="background:#38BDF8; color:#000; font-weight:700; padding:3px 10px; border-radius:4px;">Cyan</button>
-                    <input type="color" id="subColorPicker" value="#FFDE00" style="width:34px; height:28px; padding:0; border:none; border-radius:4px; cursor:pointer;">
-                  </div>
-                </div>
-
-                <!-- Subtitle Style -->
-                <div class="form-row">
-                  <label>Style</label>
-                  <select id="subStyleSelect">
-                    <option value="outline" selected>Outline & Shadow</option>
-                    <option value="box">Bounding Box</option>
-                  </select>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Full-Width Bottom Execution Bar & Live Process Dock -->
-          <div class="workspace-footer">
-            <div class="card run-card">
-              <div class="run-bar">
-                
-                <!-- Left: Action Buttons (Equal size, strictly aligned) -->
-                <div class="run-actions">
+                <div class="run-actions mb-3" style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
                   <button id="startJobBtn" class="btn btn-action btn-success">
                     <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-                    <span>Start</span>
+                    <span>Start Recap</span>
                   </button>
                   <button id="stopJobBtn" class="btn btn-action btn-danger" disabled>
                     <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><rect x="6" y="6" width="12" height="12"/></svg>
@@ -520,54 +528,48 @@
                   </button>
                 </div>
 
-                <!-- Center: Live Status & Progress -->
-                <div class="run-status-col">
-                  <div class="run-status-header">
+                <div class="run-status-col mb-3">
+                  <div class="run-status-header mb-1" style="display: flex; align-items: center; justify-content: space-between;">
                     <div class="status-badge" id="jobStatusBadge">READY</div>
-                    <span id="jobStageText" class="stage-text">Ready to start</span>
                     <span id="jobProgressPercent" class="progress-pct font-mono">0%</span>
                   </div>
+                  <div class="stage-text mb-2" id="jobStageText" style="font-size: 0.85rem; color: var(--fg);">Ready to start</div>
                   <div class="progress-bar-bg">
                     <div id="jobProgressBar" class="progress-bar-fill" style="width: 0%;"></div>
                   </div>
-                  <div class="progress-meta">
+                  <div class="progress-meta mt-1" style="display: flex; justify-content: space-between;">
                     <span id="jobProgressLabel" class="small muted">0 / 0</span>
                     <button type="button" id="quickWatchBtn" class="btn btn-xs btn-primary hidden">Watch Video</button>
                   </div>
                 </div>
 
-                <!-- Right: Process Logs Trigger -->
                 <div class="run-tools">
-                  <button type="button" class="btn btn-secondary btn-drawer-toggle" id="drawerToggleBtn">
+                  <button type="button" class="btn btn-secondary w-100 btn-drawer-toggle" id="drawerToggleBtn">
                     <span class="live-dot" id="liveDot"></span>
                     <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg>
-                    <span id="drawerToggleLabel">Logs</span>
+                    <span id="drawerToggleLabel">Process Logs</span>
                     <span class="badge" id="logLinesCount">0 lines</span>
                     <svg id="drawerArrow" class="drawer-arrow" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
                   </button>
                 </div>
 
-              </div>
-
-              <!-- Collapsible Live Process Output Drawer -->
-              <div class="logs-drawer hidden" id="logsDrawer">
-                <div class="logs-drawer-header">
-                  <div class="logs-header-left">
-                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg>
-                    <strong>Process Logs</strong>
+                <!-- Collapsible Live Process Output Drawer -->
+                <div class="logs-drawer hidden mt-3" id="logsDrawer" style="border-radius: 6px; overflow: hidden; border: 1px solid var(--border);">
+                  <div class="logs-drawer-header">
+                    <div class="logs-header-left">
+                      <strong>Console Output</strong>
+                    </div>
+                    <div class="logs-header-right">
+                      <button type="button" class="btn btn-sm btn-secondary" id="copyLogsBtn">Copy</button>
+                      <button type="button" class="btn btn-sm btn-secondary" id="clearLogsBtn">Clear</button>
+                    </div>
                   </div>
-                  <div class="logs-header-right">
-                    <button type="button" class="btn btn-sm btn-secondary" id="copyLogsBtn">
-                      <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-                      <span>Copy</span>
-                    </button>
-                    <button type="button" class="btn btn-sm btn-secondary" id="clearLogsBtn">Clear</button>
-                  </div>
+                  <div class="log-console font-mono" id="liveLogConsole">[Ready]</div>
                 </div>
-                <div class="log-console font-mono" id="liveLogConsole">[Ready]</div>
-              </div>
 
+              </div>
             </div>
+
           </div>
 
         </div>

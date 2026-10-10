@@ -1335,38 +1335,63 @@ input[type="range"]::-webkit-slider-thumb {
   }
 
   /* Center Pane: Preview & Alignment */
+  .preview-card {
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    overflow: hidden;
+  }
   .preview-card .card-body {
     padding: 10px;
+    width: 100%;
+    box-sizing: border-box;
   }
   .preview-stage-container {
+    width: 100% !important;
+    max-width: 100% !important;
     max-height: 48vh;
-    min-height: 200px;
+    min-height: 190px;
     border-radius: 8px;
+    box-sizing: border-box;
+    overflow: hidden;
   }
   .seek-bar-row {
+    width: 100%;
+    box-sizing: border-box;
     margin: 8px 0 10px;
     gap: 6px;
+    display: flex;
+    align-items: center;
   }
   .seek-bar-row span {
     font-size: 0.74rem;
   }
-  .mobile-positioning-panel {
+  .seek-bar-row .btn-icon {
+    min-width: 42px;
+    height: 38px;
+    padding: 4px 8px;
+    flex-shrink: 0;
+  }
+  .seek-bar-row input[type="range"] {
+    flex: 1;
+    min-width: 0;
+  }
+
+  /* Unified Blur Controls Panel */
+  .blur-box-controls-panel {
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
     padding: 10px;
+    margin-top: 8px;
   }
-  .target-dropdown {
-    height: 42px;
-    font-size: 0.88rem;
-    padding: 8px 12px;
+  .step-next-btn {
+    width: 100%;
+    min-height: 44px;
+    font-size: 0.9rem;
+    font-weight: 600;
   }
-  .preset-grid {
-    grid-template-columns: repeat(3, 1fr);
-    gap: 6px;
-  }
-  .grid-btn {
-    min-height: 42px;
-    font-size: 0.8rem;
-    padding: 6px 2px;
-  }
+
   .step-btn,
   .btn-stepper {
     min-width: 42px;
@@ -1396,85 +1421,50 @@ input[type="range"]::-webkit-slider-thumb {
 
   /* Blur Box List Items (Mobile Responsive Layout) */
   .blur-box-item {
-    flex-direction: column;
-    align-items: stretch;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
     gap: 8px;
-    padding: 10px;
-  }
-  .blur-box-item-inputs {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 6px;
-    width: 100%;
-  }
-  .blur-box-item-inputs input {
-    height: 36px;
-    font-size: 0.85rem;
-  }
-  .blur-box-item .btn-danger {
-    align-self: flex-end;
-    min-height: 36px;
-    padding: 6px 12px;
+    padding: 8px 10px;
   }
 
-  /* Sticky Workspace Action Dock at Viewport Bottom */
-  .workspace-footer {
-    position: sticky;
-    bottom: 0;
-    z-index: 80;
-    margin-top: 10px;
-  }
+  /* Natural Non-Floating Execution Bar */
   .run-card {
-    border-radius: 12px 12px 0 0;
-    border-bottom: none;
-    background: rgba(18, 22, 32, 0.98);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.5);
-    border: 1px solid var(--border-light);
-    border-bottom: none;
+    border-radius: var(--radius);
+    background: var(--panel);
+    border: 1px solid var(--border);
+    box-shadow: none;
+    margin-top: 14px;
   }
   .run-bar {
-    display: grid;
-    grid-template-columns: 1fr 1fr auto;
-    grid-template-areas:
-      "start stop logs"
-      "status status status";
-    gap: 8px;
-    padding: 10px 12px;
-    padding-bottom: max(10px, env(safe-area-inset-bottom));
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 12px;
   }
   .run-actions {
-    display: contents;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    width: 100%;
   }
-  #startJobBtn {
-    grid-area: start;
-    height: 42px;
-    min-width: 0 !important;
-    padding: 0 10px;
-    font-size: 0.88rem;
-  }
+  #startJobBtn,
   #stopJobBtn {
-    grid-area: stop;
-    height: 42px;
+    height: 44px;
     min-width: 0 !important;
     padding: 0 10px;
-    font-size: 0.88rem;
-  }
-  .run-tools {
-    grid-area: logs;
-    display: flex;
-    align-items: center;
+    font-size: 0.9rem;
+    font-weight: 700;
   }
   .btn-drawer-toggle {
     height: 42px;
     padding: 0 10px;
-    font-size: 0.8rem;
+    font-size: 0.84rem;
     white-space: nowrap;
   }
   .run-status-col {
-    grid-area: status;
     width: 100%;
-    gap: 4px;
+    gap: 6px;
   }
   .run-status-header {
     gap: 6px;
