@@ -1449,7 +1449,7 @@ input[type="range"]::-webkit-slider-thumb {
     border-color: var(--accent);
   }
 
-  /* Mobile Studio View Tabs (Natural non-sticky flow to eliminate header collisions & maximize viewport) */
+  /* Mobile Studio View Tabs */
   .mobile-view-tabs {
     display: flex !important;
     position: relative;
@@ -1458,7 +1458,9 @@ input[type="range"]::-webkit-slider-thumb {
     padding: 4px;
     border: 1px solid var(--border);
     border-radius: var(--radius);
-    margin: 8px 10px 14px;
+    margin: 4px 0 12px;
+    width: 100%;
+    box-sizing: border-box;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
   }
   .view-tab-btn {
@@ -1492,16 +1494,29 @@ input[type="range"]::-webkit-slider-thumb {
 
   /* Pane visibility based on active mobile studio view */
   .main-content {
+    width: 100% !important;
+    max-width: 100vw !important;
+    box-sizing: border-box !important;
+    padding: 8px 10px;
     padding-bottom: max(36px, calc(env(safe-area-inset-bottom, 0px) + 24px));
+    overflow-x: hidden;
   }
   .workspace-layout {
-    grid-template-columns: 1fr;
-    gap: 12px;
-    padding-bottom: max(24px, calc(env(safe-area-inset-bottom, 0px) + 16px));
+    display: block !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    margin: 0 !important;
+    padding: 0 !important;
   }
   .left-pane,
   .center-pane,
   .right-pane {
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    margin: 0 !important;
+    padding: 0 !important;
     padding-bottom: 24px;
   }
   .card-header h3,
@@ -1522,6 +1537,7 @@ input[type="range"]::-webkit-slider-thumb {
   }
   .workspace-layout[data-mobile-view="center"] .center-pane {
     display: block !important;
+    width: 100% !important;
   }
 
   .workspace-layout[data-mobile-view="left"] .center-pane,
@@ -1530,6 +1546,7 @@ input[type="range"]::-webkit-slider-thumb {
   }
   .workspace-layout[data-mobile-view="left"] .left-pane {
     display: block !important;
+    width: 100% !important;
   }
 
   .workspace-layout[data-mobile-view="right"] .left-pane,
@@ -1538,6 +1555,7 @@ input[type="range"]::-webkit-slider-thumb {
   }
   .workspace-layout[data-mobile-view="right"] .right-pane {
     display: block !important;
+    width: 100% !important;
   }
 
   .workspace-layout .workspace-footer {
@@ -1547,28 +1565,33 @@ input[type="range"]::-webkit-slider-thumb {
 
   /* Center Pane: Preview & Alignment */
   .preview-card {
-    width: 100%;
-    max-width: 100%;
-    box-sizing: border-box;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
     overflow: hidden;
+    margin-bottom: 12px;
   }
   .preview-card .card-body {
-    padding: 10px;
-    width: 100%;
-    box-sizing: border-box;
+    padding: 10px !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    overflow: hidden;
   }
   .preview-stage-container {
     width: 100% !important;
-    max-width: 100% !important;
-    max-height: 48vh;
-    min-height: 190px;
+    max-width: 100%;
+    margin: 0 auto;
     border-radius: 8px;
-    box-sizing: border-box;
+    box-sizing: border-box !important;
     overflow: hidden;
+    position: relative;
+    background: #05070a;
   }
   .seek-bar-row {
-    width: 100%;
-    box-sizing: border-box;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
     margin: 8px 0 10px;
     gap: 6px;
     display: flex;
@@ -1586,6 +1609,18 @@ input[type="range"]::-webkit-slider-thumb {
   .seek-bar-row input[type="range"] {
     flex: 1;
     min-width: 0;
+  }
+
+  /* Step Next Button (Full-width prominent action) */
+  .step-next-btn {
+    width: 100% !important;
+    min-height: 48px !important;
+    font-size: 0.95rem !important;
+    font-weight: 700 !important;
+    border-radius: var(--radius) !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
   }
 
   /* Unified Blur Controls Panel */

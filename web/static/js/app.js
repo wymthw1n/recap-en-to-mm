@@ -78,8 +78,11 @@ document.addEventListener("DOMContentLoaded", () => {
     viewTabBtns.forEach(b => b.classList.toggle("active", b.dataset.view === view));
     window.scrollTo({ top: 0, behavior: "smooth" });
     if (view === "center") {
-      updatePreviewAspectRatio();
-      updateOverlayPositions();
+      requestAnimationFrame(() => {
+        updatePreviewAspectRatio();
+        updateOverlayPositions();
+        renderBlurBoxesOnCanvas();
+      });
     }
   }
 
@@ -317,23 +320,23 @@ document.addEventListener("DOMContentLoaded", () => {
     const ratio = ratioSelect.value;
     if (ratio === "9:16") {
       previewContainer.style.aspectRatio = "9 / 16";
-      previewContainer.style.maxWidth = isMobile ? "100%" : "310px";
-      previewContainer.style.maxHeight = isMobile ? "480px" : "540px";
+      previewContainer.style.maxWidth = isMobile ? "240px" : "310px";
+      previewContainer.style.maxHeight = isMobile ? "380px" : "540px";
     } else if (ratio === "1:1") {
       previewContainer.style.aspectRatio = "1 / 1";
-      previewContainer.style.maxWidth = isMobile ? "100%" : "460px";
-      previewContainer.style.maxHeight = isMobile ? "100vw" : "460px";
+      previewContainer.style.maxWidth = isMobile ? "300px" : "460px";
+      previewContainer.style.maxHeight = isMobile ? "300px" : "460px";
     } else if (ratio === "Original" && state.selectedSource && state.selectedSource.width && state.selectedSource.height) {
       const sw = state.selectedSource.width;
       const sh = state.selectedSource.height;
       previewContainer.style.aspectRatio = `${sw} / ${sh}`;
       previewContainer.style.maxWidth = isMobile ? "100%" : (sw >= sh ? "640px" : "320px");
-      previewContainer.style.maxHeight = isMobile ? "none" : (sw >= sh ? "360px" : "540px");
+      previewContainer.style.maxHeight = isMobile ? (sw >= sh ? "240px" : "380px") : (sw >= sh ? "360px" : "540px");
     } else {
       // 16:9
       previewContainer.style.aspectRatio = "16 / 9";
       previewContainer.style.maxWidth = isMobile ? "100%" : "640px";
-      previewContainer.style.maxHeight = isMobile ? "none" : "360px";
+      previewContainer.style.maxHeight = isMobile ? "240px" : "360px";
     }
   }
 
