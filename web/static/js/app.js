@@ -89,11 +89,17 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
-  // Step progression buttons ("Next: Preview & Subtitles ->", "Next: Voice & Produce ->")
+  // Step progression buttons ("Next: Preview & Subtitles ->", "Next: Voice & Produce ->", "<- Back")
   document.querySelectorAll(".step-next-btn").forEach(btn => {
     btn.addEventListener("click", () => {
       const next = btn.dataset.next;
       if (next) setMobileStudioView(next);
+    });
+  });
+  document.querySelectorAll(".step-prev-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const prev = btn.dataset.prev;
+      if (prev) setMobileStudioView(prev);
     });
   });
 
@@ -493,6 +499,7 @@ document.addEventListener("DOMContentLoaded", () => {
         overlaySubtitle.classList.toggle("hidden", !burnSubtitlesCheck.checked);
       }
       updateOverlayPositions();
+      updateSummaryPills();
     });
   }
 
@@ -579,9 +586,15 @@ document.addEventListener("DOMContentLoaded", () => {
     subColorBtns.forEach(btn => {
       btn.addEventListener("click", () => {
         subColorBtns.forEach(b => b.classList.remove("active"));
+        const customLabel = document.getElementById("customColorLabel");
+        if (customLabel) customLabel.classList.remove("active");
         btn.classList.add("active");
         state.overlays.subtitle_color = btn.dataset.color;
-        if (subColorPicker) subColorPicker.value = btn.dataset.color;
+        if (subColorPicker) {
+          subColorPicker.value = btn.dataset.color;
+          const customDot = document.getElementById("customColorDot");
+          if (customDot) customDot.style.background = btn.dataset.color;
+        }
         updateOverlayPositions();
       });
     });
@@ -590,6 +603,10 @@ document.addEventListener("DOMContentLoaded", () => {
   if (subColorPicker) {
     subColorPicker.addEventListener("input", () => {
       subColorBtns.forEach(b => b.classList.remove("active"));
+      const customLabel = document.getElementById("customColorLabel");
+      if (customLabel) customLabel.classList.add("active");
+      const customDot = document.getElementById("customColorDot");
+      if (customDot) customDot.style.background = subColorPicker.value;
       state.overlays.subtitle_color = subColorPicker.value;
       updateOverlayPositions();
     });
@@ -907,12 +924,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function updateSummaryPills() {
     if (subSummaryPill) {
-      const colorName = state.overlays.subtitle_color === "#FFDE00" ? "Yellow" :
-                        (state.overlays.subtitle_color === "#FFFFFF" ? "White" :
-                        (state.overlays.subtitle_color === "#38BDF8" ? "Cyan" : state.overlays.subtitle_color));
-      const sizePct = (state.overlays.subtitle_size_pct || state.overlays.subtitle_size || 3.6).toFixed(1);
-      const posY = Math.round((state.overlays.subtitle_pos ? state.overlays.subtitle_pos[1] : 0.86) * 100);
-      subSummaryPill.innerText = `${sizePct}% · ${colorName} · ${posY}%Y`;
+      if (burnSubtitlesCheck && !burnSubtitlesCheck.checked) {
+        subSummaryPill.innerText = "Off";
+      } else {
+        const colorName = state.overlays.subtitle_color === "#FFDE00" ? "Yellow" :
+                          (state.overlays.subtitle_color === "#FFFFFF" ? "White" :
+                          (state.overlays.subtitle_color === "#38BDF8" ? "Cyan" : state.overlays.subtitle_color));
+        const sizePct = (state.overlays.subtitle_size_pct || state.overlays.subtitle_size || 3.6).toFixed(1);
+        const posY = Math.round((state.overlays.subtitle_pos ? state.overlays.subtitle_pos[1] : 0.86) * 100);
+        subSummaryPill.innerText = `${sizePct}% · ${colorName} · ${posY}%Y`;
+      }
     }
     if (blurSummaryPill) {
       const count = state.overlays.blur_boxes.length;
