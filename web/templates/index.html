@@ -234,14 +234,22 @@
               </div>
             </div>
 
-            <!-- Burmese Subtitles Card -->
-            <div class="card">
-              <div class="card-header space-between">
-                <h3>Burmese Subtitles</h3>
-                <label class="switch-label small">
-                  <input type="checkbox" id="burnSubtitlesCheck" checked>
-                  <span>Burn on Video</span>
-                </label>
+            <!-- Burmese Subtitles Card (Collapsible, Open by default) -->
+            <div class="card collapsible-card" id="subtitlesCard">
+              <div class="card-header collapsible-header">
+                <div class="collapsible-header-left">
+                  <span class="chevron-arrow">
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+                  </span>
+                  <h3>Burmese Subtitles</h3>
+                  <span class="summary-pill" id="subSummaryPill">3.6% · Yellow · 86%Y</span>
+                </div>
+                <div class="header-actions">
+                  <label class="switch-label small" title="Burn Burmese subtitles into output video">
+                    <input type="checkbox" id="burnSubtitlesCheck" checked>
+                    <span>Burn</span>
+                  </label>
+                </div>
               </div>
               <div class="card-body">
                 <!-- Subtitle Font Size with Steppers -->
@@ -324,14 +332,19 @@
               </div>
             </div>
 
-            <!-- Watermark Blur Box Card -->
-            <div class="card">
-              <div class="card-header space-between">
-                <div>
-                  <h3>Blur Watermark / Hardsubs</h3>
-                  <p class="muted small mb-0">Masks original burnt subtitles behind new Burmese text</p>
+            <!-- Watermark Blur Box Card (Collapsible, Collapsed by default) -->
+            <div class="card collapsible-card collapsed" id="blurCard">
+              <div class="card-header collapsible-header">
+                <div class="collapsible-header-left">
+                  <span class="chevron-arrow">
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+                  </span>
+                  <h3>Blur Box / Mask</h3>
+                  <span class="summary-pill" id="blurSummaryPill">1 box (85%×10%)</span>
                 </div>
-                <button type="button" id="addBlurBtn" class="btn btn-sm btn-secondary">+ Add Box</button>
+                <div class="header-actions">
+                  <button type="button" id="addBlurBtn" class="btn btn-xs btn-secondary">+ Add</button>
+                </div>
               </div>
               <div class="card-body">
                 <div id="blurBoxesList" class="blur-boxes-list mb-3">
@@ -401,10 +414,16 @@
               </div>
             </div>
 
-            <!-- Optional Brand Overlays Card -->
-            <div class="card">
-              <div class="card-header">
-                <h3>Optional Branding (Title & Logo)</h3>
+            <!-- Title & Extra Text Card (Collapsible, Collapsed by default) -->
+            <div class="card collapsible-card collapsed" id="titleCard">
+              <div class="card-header collapsible-header">
+                <div class="collapsible-header-left">
+                  <span class="chevron-arrow">
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+                  </span>
+                  <h3>Title & Text</h3>
+                  <span class="summary-pill" id="titleSummaryPill">None</span>
+                </div>
               </div>
               <div class="card-body">
                 <!-- Title Text -->
@@ -414,20 +433,33 @@
                 </div>
 
                 <!-- Extra Text -->
-                <div class="form-row mb-3">
+                <div class="form-row">
                   <label>Extra Text / Watermark Text</label>
                   <input type="text" id="extraTextInput" class="mm-text" placeholder="စာတို ရေးရန်...">
                 </div>
+              </div>
+            </div>
 
+            <!-- Logo Overlay Card (Collapsible, Collapsed by default) -->
+            <div class="card collapsible-card collapsed" id="logoCard">
+              <div class="card-header collapsible-header">
+                <div class="collapsible-header-left">
+                  <span class="chevron-arrow">
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+                  </span>
+                  <h3>Logo Overlay</h3>
+                  <span class="summary-pill" id="logoSummaryPill">Off</span>
+                </div>
+                <div class="header-actions">
+                  <label class="switch-label small">
+                    <input type="checkbox" id="logoEnabledCheck">
+                    <span>Enable</span>
+                  </label>
+                </div>
+              </div>
+              <div class="card-body">
                 <!-- Logo Image -->
                 <div class="form-row">
-                  <div class="space-between mb-2">
-                    <label>Logo Overlay</label>
-                    <label class="switch-label small">
-                      <input type="checkbox" id="logoEnabledCheck">
-                      <span>Enable</span>
-                    </label>
-                  </div>
                   <input type="file" id="logoFileInput" accept="image/png,image/jpeg,image/webp">
                   <div class="form-row mt-2">
                     <div class="label-with-val">
@@ -437,11 +469,14 @@
                     <input type="range" id="logoSizeSlider" min="6" max="35" value="16" step="1">
                   </div>
                 </div>
-
-                <button type="button" class="btn btn-primary step-next-btn w-100 mt-4" data-next="right">
-                  <span>Next: Voice & Produce →</span>
-                </button>
               </div>
+            </div>
+
+            <!-- Step 2 Navigation Footer -->
+            <div class="step-footer mt-3 mb-2">
+              <button type="button" class="btn btn-primary step-next-btn w-100" data-next="right">
+                <span>Next: Voice & Produce →</span>
+              </button>
             </div>
 
           </div>

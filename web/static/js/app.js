@@ -412,6 +412,9 @@ document.addEventListener("DOMContentLoaded", () => {
   logoEnabledCheck.addEventListener("change", () => {
     state.overlays.logo_enabled = logoEnabledCheck.checked;
     overlayLogo.classList.toggle("hidden", !logoEnabledCheck.checked || !state.overlays.logo_path);
+    if (logoEnabledCheck.checked) {
+      expandCollapsibleCard("logoCard");
+    }
     updateOverlayPositions();
   });
 
@@ -837,6 +840,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     syncBlurBoxControls();
+    updateSummaryPills();
   }
 
   function renderBlurBoxesOnCanvas() {
@@ -876,22 +880,92 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
+  // ---------------- Collapsible Overlay Cards & Summary Badges ----------------
+  const subSummaryPill = document.getElementById("subSummaryPill");
+  const blurSummaryPill = document.getElementById("blurSummaryPill");
+  const titleSummaryPill = document.getElementById("titleSummaryPill");
+  const logoSummaryPill = document.getElementById("logoSummaryPill");
+
+  function expandCollapsibleCard(cardId) {
+    const card = document.getElementById(cardId);
+    if (card && card.classList.contains("collapsed")) {
+      card.classList.remove("collapsed");
+    }
+  }
+
+  document.querySelectorAll(".collapsible-header").forEach(header => {
+    header.addEventListener("click", (e) => {
+      if (e.target.closest("input, button, select, label, .switch-label")) {
+        return;
+      }
+      const card = header.closest(".collapsible-card");
+      if (card) {
+        card.classList.toggle("collapsed");
+      }
+    });
+  });
+
+  function updateSummaryPills() {
+    if (subSummaryPill) {
+      const colorName = state.overlays.subtitle_color === "#FFDE00" ? "Yellow" :
+                        (state.overlays.subtitle_color === "#FFFFFF" ? "White" :
+                        (state.overlays.subtitle_color === "#38BDF8" ? "Cyan" : state.overlays.subtitle_color));
+      const sizePct = (state.overlays.subtitle_size_pct || state.overlays.subtitle_size || 3.6).toFixed(1);
+      const posY = Math.round((state.overlays.subtitle_pos ? state.overlays.subtitle_pos[1] : 0.86) * 100);
+      subSummaryPill.innerText = `${sizePct}% · ${colorName} · ${posY}%Y`;
+    }
+    if (blurSummaryPill) {
+      const count = state.overlays.blur_boxes.length;
+      if (count === 0) {
+        blurSummaryPill.innerText = "None";
+      } else {
+        const b = getActiveBlurBox() || state.overlays.blur_boxes[0];
+        blurSummaryPill.innerText = `${count} box${count > 1 ? 'es' : ''} (${Math.round(b.w * 100)}%×${Math.round(b.h * 100)}%)`;
+      }
+    }
+    if (titleSummaryPill) {
+      const txt = (state.overlays.title_text || state.overlays.extra_text || "").trim();
+      if (txt) {
+        titleSummaryPill.innerText = txt.length > 12 ? (txt.slice(0, 12) + "…") : txt;
+      } else {
+        titleSummaryPill.innerText = "None";
+      }
+    }
+    if (logoSummaryPill) {
+      if (state.overlays.logo_enabled && state.overlays.logo_path) {
+        logoSummaryPill.innerText = `On (${Math.round(state.overlays.logo_width_frac * 100)}%)`;
+      } else {
+        logoSummaryPill.innerText = "Off";
+      }
+    }
+  }
+
   if (addBlurBtn) {
     addBlurBtn.addEventListener("click", () => {
       state.overlays.blur_boxes.push({ x: 0.075, y: 0.82, w: 0.85, h: 0.10 });
       state.activeBlurIndex = state.overlays.blur_boxes.length - 1;
       state.activeOverlayTarget = "blur";
+      expandCollapsibleCard("blurCard");
       syncBlurBoxControls();
       renderBlurBoxesList();
       renderBlurBoxesOnCanvas();
+      updateSummaryPills();
     });
   }
 
   function setActiveOverlayTarget(target) {
     state.activeOverlayTarget = target;
-    if (target === "blur") {
+    if (target === "subtitle") {
+      expandCollapsibleCard("subtitlesCard");
+    } else if (target === "blur") {
+      expandCollapsibleCard("blurCard");
       syncBlurBoxControls();
+    } else if (target === "title" || target === "extra") {
+      expandCollapsibleCard("titleCard");
+    } else if (target === "logo") {
+      expandCollapsibleCard("logoCard");
     }
+    updateSummaryPills();
     updateOverlayPositions();
     renderBlurBoxesOnCanvas();
   }
@@ -900,6 +974,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (state.activeOverlayTarget === "blur") {
       syncBlurBoxControls();
     }
+    updateSummaryPills();
   }
 
   // Direct Interactive Dragging on Canvas
@@ -1056,6 +1131,7 @@ document.addEventListener("DOMContentLoaded", () => {
     overlayLogo.style.left = `${state.overlays.logo_pos[0] * 100}%`;
     overlayLogo.style.top = `${state.overlays.logo_pos[1] * 100}%`;
     overlayLogo.style.width = `${state.overlays.logo_width_frac * 100}%`;
+    updateSummaryPills();
   }
 
   // ---------------- Voice Settings ----------------
@@ -1589,5 +1665,6 @@ document.addEventListener("DOMContentLoaded", () => {
   loadJobs();
   renderBlurBoxesList();
   renderBlurBoxesOnCanvas();
+  updateSummaryPills();
   setMobileStudioView("left");
 });
